@@ -14,10 +14,10 @@ export default function CheckoutPage() {
   const [submitted, setSubmitted] = useState(false);
 
   const buildMsg = () => encodeURIComponent(
-    `🛍️ *Новый заказ — TechStore KG*\n\n` +
+    `🛍️ *Здравствуйте! хочу заказть в TechStore KG:*\n\n` +
     `👤 ${form.name}\n📍 ${form.address}\n📱 ${form.whatsapp}\n\n` +
     `📦 *Товары:*\n${cartItems.map((i) => `• ${i.product.name} ×${i.quantity} = ${formatPrice(i.product.price_kgs * i.quantity)}`).join("\n")}\n\n` +
-    `💰 *Итого: ${formatPrice(cartTotal)}*`
+    `💰 *Итого: ${formatPrice(cartTotal)}*` + `*Жду подтверждения заказа и информацию по доставке!*`
   );
 
   const handleConfirm = () => {

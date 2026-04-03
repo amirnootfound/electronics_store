@@ -29,6 +29,15 @@ export default function ImageGallery({ images, name }: ImageGalleryProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [zoomed, all.length]);
 
+  useEffect(() => {
+    if (zoomed) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [zoomed]);
+
   // Touch swipe
   const handleTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {

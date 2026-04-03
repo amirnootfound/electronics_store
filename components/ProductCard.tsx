@@ -71,9 +71,9 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
       <Link href={`/product/${product.id}`} onClick={() => addRecentlyViewed(product)}
         className="flex gap-4 sm:gap-5 p-4 sm:p-5 bg-white rounded-2xl border border-[#e8e8ed] hover:border-[#c7c7cc] hover:shadow-lg transition-all duration-300 group"
       >
-        <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-[#f5f5f7] rounded-xl overflow-hidden">
-          <Image src={product.image} alt={product.name} width={112} height={112}
-            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+        <div className="w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-white rounded-xl overflow-hidden relative border border-[#f5f5f7]">
+          <Image src={product.image} alt={product.name} fill
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
             unoptimized
           />
         </div>
@@ -137,14 +137,16 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
 
       {/* Image */}
       <Link href={`/product/${product.id}`} onClick={() => addRecentlyViewed(product)}
-        className="block bg-[#f5f5f7] img-zoom"
+        className="block bg-white overflow-hidden group/img" // Поменял фон на белый, так чище для разных фото
       >
-        <div className="relative pt-[82%]">
+        <div className="relative aspect-square"> {/* Сделал квадрат 1:1 */}
           <Image src={product.image} alt={product.name} fill
             sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
-            className="object-contain p-4 sm:p-6"
+            className="object-cover transition-transform duration-700 group-hover/img:scale-110" // Теперь во весь экран
             unoptimized
           />
+          {/* Мягкий оверлей, чтобы сгладить переходы, если нужно */}
+          <div className="absolute inset-0 bg-black/[0.02] pointer-events-none" />
         </div>
       </Link>
 

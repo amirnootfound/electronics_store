@@ -53,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 ))}
               </div>
               <div className="border-t border-[#d2d2d7] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6e6e73]">
-                <p>© 2024 TechStore KG. Все права защищены.</p>
+                <p>© 2026 TechStore KG. Все права защищены.</p>
                 <Link href="/admin" className="hover:text-[#0071e3]">
                   Панель администратора
                 </Link>
