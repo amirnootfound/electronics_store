@@ -5,6 +5,7 @@ import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ImageGallery from "@/components/ImageGallery";
+import { useRouter } from "next/navigation";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -12,6 +13,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const product = products.find((p) => p.id === id);
   const [added, setAdded] = useState(false);
   const wishlisted = isWishlisted(id);
+  const router = useRouter();
 
   const related = products.filter((p) => p.category === product?.category && p.id !== id).slice(0, 4);
 
@@ -31,6 +33,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     <div className="fade-in">
       {/* Breadcrumb */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4">
+      <button 
+      onClick={() => router.back()}
+      className="flex items-center text-[#0071e3] mb-6 hover:opacity-70 transition-all font-medium"
+    >
+      <span className="mr-2">←</span> Назад
+    </button>
         <nav className="flex items-center gap-2 text-xs sm:text-sm text-[#6e6e73] flex-wrap">
           <Link href="/" className="hover:text-[#0071e3]">Главная</Link>
           <span>/</span>
