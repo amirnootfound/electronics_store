@@ -6,7 +6,7 @@ import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
 import { CheckoutForm } from "@/types";
 
-const WHATSAPP_NUMBER = "996700123456";
+const WHATSAPP_NUMBER = "996553503794";
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, cartCount, clearCart } = useStore();

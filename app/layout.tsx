@@ -4,6 +4,7 @@ import { StoreProvider } from "@/context/StoreContext";
 import Navbar from "@/components/Navbar";
 import CartSidebar from "@/components/CartSidebar";
 import SearchModal from "@/components/SearchModal";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "TechStore KG — Premium Electronics Bishkek",
@@ -24,10 +25,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru">
+    <html lang="ru" data-scroll-behavior="smooth">
       <body className="bg-white text-[#333] antialiased">
         <StoreProvider>
-          <Navbar />
           <SearchModal />
           <CartSidebar />
           <main className="min-h-screen">{children}</main>
@@ -54,7 +54,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <div className="border-t border-[#d2d2d7] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6e6e73]">
                 <p>© 2024 TechStore KG. Все права защищены.</p>
-                <a href="/admin" className="hover:text-[#0071e3]">Панель администратора</a>
+                <Link href="/admin" className="hover:text-[#0071e3]">
+                  Панель администратора
+                </Link>
               </div>
             </div>
           </footer>

@@ -38,3 +38,19 @@ export async function deleteProductImage(url: string): Promise<void> {
   if (!path) return;
   await supabase.storage.from(bucket).remove([path]);
 }
+
+// ── Helper: Admin Sign In ──────────────────────────────────
+export async function adminSignIn(email: any, password: any) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) throw error;
+  return data;
+}
+
+// ── Helper: Sign Out ───────────────────────────────────────
+export async function adminSignOut() {
+  await supabase.auth.signOut();
+  localStorage.removeItem("adminAuth");
+}
