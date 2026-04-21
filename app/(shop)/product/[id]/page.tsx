@@ -6,12 +6,15 @@ import { formatPrice } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ImageGallery from "@/components/ImageGallery";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { products, addToCart, toggleWishlist, isWishlisted, addRecentlyViewed } = useStore();
   const product = products.find((p) => p.id === id);
   const [added, setAdded] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: "", whatsapp: "", message: "" });
   const wishlisted = isWishlisted(id);
   const router = useRouter();
 
@@ -28,6 +31,50 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   );
 
   const handleAddToCart = () => { addToCart(product); setAdded(true); setTimeout(() => setAdded(false), 2000); };
+
+  const handleQuickContact = async () => {
+    if (!contactForm.name || !contactForm.whatsapp) {
+      alert("Please fill in your name and WhatsApp number");
+      return;
+    }
+
+    try {
+      const leadData = {
+        customer_name: contactForm.name,
+        whatsapp: contactForm.whatsapp,
+        product_name: product.name,
+        category: product.category,
+        product_id: product.id,
+        message: contactForm.message || `Interested in ${product.name}`,
+        total_amount: product.price_kgs,
+        source: "product_page" as const,
+        status: "new" as const,
+        priority: product.price_kgs > 50000 ? "high" : product.price_kgs > 20000 ? "medium" : "low" as const,
+      };
+
+      const { data, error } = await supabase
+        .from("leads")
+        .insert([leadData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating lead:", error);
+        alert("Failed to send inquiry. Please try again.");
+        return;
+      }
+
+      // Open WhatsApp with lead reference
+      const msg = `🆔 Lead ID: ${data.id}\n\n🛍️ *Product Inquiry: ${product.name}*\n\n👤 ${contactForm.name}\n📱 ${contactForm.whatsapp}\n\n💰 Price: ${formatPrice(product.price_kgs)}\n\n${contactForm.message}`;
+      
+      window.open(`https://wa.me/996553503794?text=${encodeURIComponent(msg)}`, "_blank");
+      setShowContactModal(false);
+      setContactForm({ name: "", whatsapp: "", message: "" });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to send inquiry. Please try again.");
+    }
+  };
 
   return (
     <div className="fade-in">
@@ -127,10 +174,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </svg>
               </button>
             </div>
-            <Link href="/checkout"
-              className="block text-center py-3.5 sm:py-4 rounded-full border-2 border-[#1d1d1f] text-[#1d1d1f] font-bold text-sm sm:text-base hover:bg-[#1d1d1f] hover:text-white transition-all">
-              Купить сейчас
-            </Link>
+            <div className="flex gap-3 mb-3">
+              <button onClick={() => setShowContactModal(true)}
+                className="flex-1 py-3.5 sm:py-4 rounded-full border-2 border-[#25d366] text-[#25d366] font-bold text-sm sm:text-base hover:bg-[#25d366] hover:text-white transition-all flex items-center justify-center gap-2">
+                Быстрый заказ
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -144,6 +193,78 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         </section>
+      )}
+
+      {/* Quick Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-md max-h-[90vh] flex flex-col fade-in-scale">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#f5f5f7] shrink-0">
+              <h2 className="text-base font-bold text-[#1d1d1f]">Быстрый заказ</h2>
+              <button onClick={() => setShowContactModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f5f5f7] text-[#6e6e73] text-lg">×</button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              <p className="text-sm text-[#6e6e73]">Получите больше информации о <strong>{product.name}</strong></p>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Имя *</label>
+                  <input 
+                    type="text" 
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="Your name"
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">WhatsApp *</label>
+                  <input 
+                    type="tel" 
+                    value={contactForm.whatsapp}
+                    onChange={(e) => setContactForm(f => ({ ...f, whatsapp: e.target.value }))}
+                    placeholder="+996 700 123 456"
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Сообщение (optional)</label>
+                  <textarea
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm(f => ({ ...f, message: e.target.value }))}
+                    rows={3}
+                    placeholder="Any questions about this product?"
+                    className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-[#f5f5f7] rounded-xl p-3">
+                <p className="text-xs text-[#6e6e73] mb-1">💰 Price:</p>
+                <p className="font-bold text-[#1d1d1f]">{formatPrice(product.price_kgs)}</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 px-6 py-4 border-t border-[#f5f5f7] shrink-0">
+              <button 
+                onClick={() => setShowContactModal(false)}
+                className="flex-1 py-2.5 border border-[#d2d2d7] text-[#1d1d1f] rounded-full text-sm font-medium hover:bg-[#f5f5f7]"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={handleQuickContact}
+                className="flex-1 py-2.5 bg-[#25d366] text-white rounded-full text-sm font-semibold hover:bg-[#1da851] flex items-center justify-center gap-2"
+              >
+                Отправить в WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

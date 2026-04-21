@@ -32,8 +32,8 @@ export default function HomePage() {
   const { products, loading, recentlyViewed, activeCategory, setActiveCategory } = useStore();
   const trendingRef = useRef<HTMLDivElement>(null);
 
-  const featured = products.filter((p) => p.featured).slice(0, 4);
-  const trending = products.filter((p) => p.stock_status).slice(0, 8);
+  const featured = products.filter((p) => p.new_product || p.featured).slice(0, 4);
+  const trending = products.filter((p) => p.stock_status || p.new_product).slice(0, 8);
 
   const filtered =
     activeCategory === "all"
@@ -119,10 +119,6 @@ export default function HomePage() {
                 <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-1">Подборка</p>
                 <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f]">Новинки и популярные</h2>
               </div>
-              <button onClick={() => setActiveCategory("all")}
-                className="text-sm text-[#0071e3] font-medium hover:underline shrink-0">
-                Все →
-              </button>
             </div>
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

@@ -20,17 +20,19 @@ const emptyForm = (): Omit<Product, "id" | "created_at" | "updated_at"> => ({
   name: "", tagline: "", price_kgs: 0, currency: "KGS",
   image: "", images: [], category: "iPhone",
   description: "", specs: {}, stock_status: true,
-  featured: false, badge: "", rating: 0, review_count: 0,
+  featured: false, new_product: false, badge: "", rating: 0, review_count: 0,
 });
 
 // ── Stat Card ──────────────────────────────────────────────
 function StatCard({ label, value, icon, colorClass }: { label: string; value: string | number; icon: string; colorClass: string }) {
   return (
-    <div className="bg-white rounded-2xl p-5 flex items-center gap-4 border border-[#e8e8ed] hover:shadow-sm transition-shadow">
-      <div className={`w-12 h-12 ${colorClass} rounded-2xl flex items-center justify-center text-2xl shrink-0`}>{icon}</div>
-      <div>
-        <p className="text-2xl font-black text-[#1d1d1f]">{value}</p>
-        <p className="text-xs text-[#6e6e73]">{label}</p>
+    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4 border border-[#e8e8ed] hover:shadow-lg transition-all duration-200 min-h-[80px] sm:min-h-[96px] active:scale-[0.98] cursor-pointer">
+      <div className={`w-12 h-12 sm:w-12 sm:h-12 ${colorClass} rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-2xl shrink-0 font-bold`}>{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-lg sm:text-2xl font-black text-[#1d1d1f] whitespace-nowrap overflow-hidden text-ellipsis leading-tight" style={{ fontSize: 'clamp(1.125rem, 5vw, 2rem)' }}>
+          {value}
+        </p>
+        <p className="text-xs sm:text-sm text-[#6e6e73] line-clamp-1 mt-1 font-medium">{label}</p>
       </div>
     </div>
   );
@@ -155,7 +157,11 @@ function ProductModal({ product, onSave, onClose }: {
                 </div>
                 <div className="flex items-center gap-3">
                   <ToggleSwitch checked={!!form.featured} onChange={(v) => setForm((f) => ({ ...f, featured: v }))} color="blue" />
-                  <span className="text-sm font-medium text-[#1d1d1f]">Featured на главной</span>
+                  <span className="text-sm font-medium text-[#1d1d1f]"></span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <ToggleSwitch checked={!!form.new_product} onChange={(v) => setForm((f) => ({ ...f, new_product: v }))} color="blue" />
+                  <span className="text-sm font-medium text-[#1d1d1f]">Новый</span>
                 </div>
               </div>
             </div>
@@ -216,6 +222,107 @@ function ProductModal({ product, onSave, onClose }: {
   );
 }
 
+// ── Mobile Product Card Component ────────────────────────────────
+function MobileProductCard({ product, onEdit, onToggleStock, onDelete, deleteConfirm }: {
+  product: Product;
+  onEdit: () => void;
+  onToggleStock: () => void;
+  onDelete: () => void;
+  deleteConfirm: boolean;
+}) {
+  const [showMore, setShowMore] = useState(false);
+
+  return (
+    <div className="bg-white rounded-xl border border-[#e8e8ed] p-4 space-y-3 hover:border-[#0071e3] transition-colors">
+      {/* Product Header */}
+      <div className="flex items-start gap-3">
+        <div className="w-16 h-16 bg-[#f5f5f7] rounded-xl overflow-hidden shrink-0">
+          {product.image && (
+            <Image src={product.image} alt={product.name} width={64} height={64}
+              className="w-full h-full object-contain p-2" unoptimized />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-[#1d1d1f] text-sm sm:text-base line-clamp-2">{product.name}</h3>
+          <p className="text-xs text-[#6e6e73] line-clamp-1 mt-1">{product.tagline}</p>
+          <div className="flex flex-wrap gap-1 mt-2">
+            {product.badge && <span className="bg-[#0071e3] text-white text-[8px] font-bold px-2 py-1 rounded-full">{product.badge}</span>}
+            {product.featured && <span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-2 py-1 rounded-full">Featured</span>}
+            <span className="bg-[#f5f5f7] text-[#1d1d1f] text-[8px] font-medium px-2 py-1 rounded-full">{product.category}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Price and Status */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-lg font-bold text-[#1d1d1f]">{formatPrice(product.price_kgs)}</p>
+          <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
+            product.stock_status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+          }`}>
+            {product.stock_status ? "В наличии" : "Не в наличии"}
+          </span>
+        </div>
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f5f5f7] text-[#6e6e73]"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="12" cy="5" r="1" />
+            <circle cx="12" cy="19" r="1" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Action Buttons */}
+      {showMore && (
+        <div className="flex gap-2 pt-2 border-t border-[#f5f5f7]">
+          <button
+            onClick={onEdit}
+            className="flex-1 py-2.5 text-sm font-medium border border-[#d2d2d7] text-[#1d1d1f] rounded-lg hover:border-[#0071e3] hover:text-[#0071e3] transition-colors min-h-[44px]"
+          >
+            Изменить
+          </button>
+          <button
+            onClick={onToggleStock}
+            className={`flex-1 py-2.5 text-sm font-medium border rounded-lg transition-colors min-h-[44px] ${
+              product.stock_status 
+                ? 'border-red-200 text-red-600 bg-red-50 hover:bg-red-100' 
+                : 'border-green-200 text-green-600 bg-green-50 hover:bg-green-100'
+            }`}
+          >
+            {product.stock_status ? "Не в наличии" : "В наличии"}
+          </button>
+          {deleteConfirm ? (
+            <div className="flex gap-2">
+              <button
+                onClick={onDelete}
+                className="flex-1 py-2.5 text-sm font-bold bg-[#ff3b30] text-white rounded-lg min-h-[44px]"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setShowMore(false)}
+                className="flex-1 py-2.5 text-sm font-medium bg-[#f5f5f7] text-[#1d1d1f] rounded-lg min-h-[44px]"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowMore(false)}
+              className="flex-1 py-2.5 text-sm text-[#ff3b30] border border-[#ff3b30] rounded-lg bg-red-20 min-h-[44px]"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Toggle switch component ────────────────────────────────
 function ToggleSwitch({ checked, onChange, color }: { checked: boolean; onChange: (v: boolean) => void; color: "green" | "blue" }) {
   return (
@@ -231,7 +338,6 @@ function ToggleSwitch({ checked, onChange, color }: { checked: boolean; onChange
   );
 }
 
-// ── MAIN DASHBOARD ─────────────────────────────────────────
 export default function AdminDashboard() {
   const router = useRouter();
   const { products, loading, addProduct, updateProduct, deleteProduct, refreshProducts } = useStore();
@@ -240,6 +346,7 @@ export default function AdminDashboard() {
   const [editProduct, setEditProduct] = useState<Partial<Product> | null>(null);
   const [searchQ, setSearchQ] = useState("");
   const [activeTab, setActiveTab] = useState<"products" | "stats">("products");
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [catFilter, setCatFilter] = useState<Category | "all">("all");
@@ -249,6 +356,11 @@ export default function AdminDashboard() {
       router.replace("/admin");
     }
   }, [router]);
+
+  // Refresh products on mount
+  useEffect(() => {
+    refreshProducts();
+  }, [refreshProducts]);
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -300,17 +412,111 @@ export default function AdminDashboard() {
 
       {/* ── Header ── */}
       <header className="glass-header sticky top-0 z-40">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-xl">⌘</span>
-            <div className="hidden sm:block">
-              <h1 className="font-bold text-[#1d1d1f] text-sm leading-none">TechStore KG</h1>
-              <p className="text-[10px] text-[#6e6e73]">Admin</p>
+        <div className="max-w-[1600px] mx-auto px-2 sm:px-6 h-14 flex items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:block">
+                <h1 className="font-bold text-[#1d1d1f] text-base leading-none">TechStore KG</h1>
+                <p className="text-[10px] text-[#6e6e73]">Admin Panel</p>
+              </div>
+              <div className="sm:hidden">
+                <h1 className="font-bold text-[#1d1d1f] text-base">TechStore KG</h1>
+              </div>
             </div>
-            <div className="flex gap-1 ml-1 sm:ml-3">
+          </div>
+          
+          {/* Center Section - Tab Buttons */}
+          <div className="hidden md:flex items-center gap-1">
+            {(["products", "stats"] as const).map((t) => (
+              <button key={t} onClick={() => setActiveTab(t)}
+                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                  activeTab === t ? "bg-[#1d1d1f] text-white" : "text-[#6e6e73] hover:text-[#1d1d1f]"
+                }`}
+              >
+                {t === "products" ? "Товары" : "Аналитика"}
+              </button>
+            ))}
+            <button 
+              onClick={() => router.push("/admin/leads")}
+              className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium text-[#0071e3] hover:text-[#0064cc] transition-colors"
+            >
+              Leads
+            </button>
+          </div>
+          
+          {/* Right Section - Action Buttons */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* Mobile Burger Menu */}
+            <div className="md:hidden">
+              <button 
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f5f5f7] text-[#6e6e73]"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+              
+              {/* Mobile Menu Dropdown */}
+              {showMobileMenu && (
+                <div className="absolute top-14 right-2 z-[300] bg-white rounded-xl shadow-xl border border-[#e8e8ed] p-2 min-w-[180px]">
+                  <button 
+                    onClick={() => setShowMobileMenu(false)}
+                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-[#f5f5f7] text-[#6e6e73] hover:bg-[#e8e8ed] transition-colors"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                  
+                  <div className="space-y-1 pt-2">
+                    <button 
+                      onClick={() => { refreshProducts(); setShowMobileMenu(false); }}
+                      className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
+                    >
+                      Refresh
+                    </button>
+                    <button 
+                      onClick={() => { router.push("/admin/leads"); setShowMobileMenu(false); }}
+                      className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
+                    >
+                      Leads
+                    </button>
+                    <button 
+                      onClick={() => { window.open("/", "_blank"); setShowMobileMenu(false); }}
+                      className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
+                    >
+                      Магазин
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Desktop Buttons */}
+            <div className="hidden md:flex items-center gap-1 sm:gap-2">
+              <button onClick={refreshProducts} className="text-xs text-[#6e6e73] hover:text-[#0071e3] p-1.5 rounded-full hover:bg-[#f5f5f7] whitespace-nowrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M23 4v6h-6"/>
+                  <path d="M1 20v-6h6"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile Tab Bar */}
+        <div className="md:hidden border-t border-[#f5f5f7] bg-white">
+          <div className="max-w-[1600px] mx-auto px-2 py-2">
+            <div className="flex gap-1 overflow-x-auto">
               {(["products", "stats"] as const).map((t) => (
                 <button key={t} onClick={() => setActiveTab(t)}
-                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                     activeTab === t ? "bg-[#1d1d1f] text-white" : "text-[#6e6e73] hover:text-[#1d1d1f]"
                   }`}
                 >
@@ -319,23 +525,12 @@ export default function AdminDashboard() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={refreshProducts} className="hidden sm:block text-xs text-[#6e6e73] hover:text-[#0071e3] px-3 py-1.5 rounded-full hover:bg-[#f5f5f7]">
-              🔄 Обновить
-            </button>
-            <a href="/" target="_blank" className="hidden sm:block text-xs text-[#0071e3] hover:underline">Магазин ↗</a>
-            <button onClick={() => { localStorage.removeItem("adminAuth"); router.replace("/admin"); }}
-              className="px-3 py-1.5 border border-[#d2d2d7] rounded-full text-xs text-[#ff3b30] hover:bg-red-50">
-              Выйти
-            </button>
-          </div>
         </div>
       </header>
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatCard label="Всего товаров" value={products.length} icon="📦" colorClass="bg-blue-50" />
           <StatCard label="В наличии" value={inStock} icon="✅" colorClass="bg-green-50" />
           <StatCard label="Нет в наличии" value={products.length - inStock} icon="❌" colorClass="bg-red-50" />
@@ -380,122 +575,180 @@ export default function AdminDashboard() {
         {activeTab === "products" && (
           <div className="bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden fade-in">
             {/* Table toolbar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-5 border-b border-[#f5f5f7]">
-              <h2 className="text-base font-bold text-[#1d1d1f]">
+            <div className="p-4 sm:p-5 border-b border-[#f5f5f7] space-y-3">
+              {/* Header */}
+              <h2 className="text-base sm:text-lg font-bold text-[#1d1d1f]">
                 Товары
-                <span className="ml-2 text-xs font-normal text-[#6e6e73]">({filtered.length} из {products.length})</span>
+                <span className="ml-2 text-xs font-normal text-[#6e6e73]">({filtered.length} of {products.length})</span>
               </h2>
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <input type="text" value={searchQ} onChange={(e) => setSearchQ(e.target.value)}
-                  placeholder="Поиск..."
-                  className="w-36 sm:w-48 px-3 py-2 bg-[#f5f5f7] rounded-xl text-xs sm:text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]" />
-                <select value={catFilter} onChange={(e) => setCatFilter(e.target.value as never)}
-                  className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-xs sm:text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]">
+              
+              {/* Mobile Toolbar */}
+              <div className="md:hidden space-y-2">
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={searchQ} 
+                    onChange={(e) => setSearchQ(e.target.value)}
+                    placeholder="Search..."
+                    className="flex-1 px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]"
+                  />
+                  <button 
+                    onClick={() => { setEditProduct(null); setModalOpen(true); }}
+                    className="px-4 py-2 bg-[#0071e3] text-white rounded-xl text-sm font-semibold hover:bg-[#0064cc] flex items-center gap-1 min-h-[44px] whitespace-nowrap"
+                  >
+                    + Add
+                  </button>
+                </div>
+                <select 
+                  value={catFilter} 
+                  onChange={(e) => setCatFilter(e.target.value as never)}
+                  className="w-full px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]"
+                >
                   <option value="all">Все</option>
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <button onClick={() => { setEditProduct(null); setModalOpen(true); }}
-                  className="px-4 py-2 bg-[#0071e3] text-white rounded-full text-xs sm:text-sm font-semibold hover:bg-[#0064cc] flex items-center gap-1 shrink-0">
-                  + Добавить
+              </div>
+
+              {/* Desktop Toolbar */}
+              <div className="hidden md:flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <input 
+                    type="text" 
+                    value={searchQ} 
+                    onChange={(e) => setSearchQ(e.target.value)}
+                    placeholder="Search..."
+                    className="w-48 px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
+                  />
+                  <select 
+                    value={catFilter} 
+                    onChange={(e) => setCatFilter(e.target.value as never)}
+                    className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
+                  >
+                    <option value="all">Все</option>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <button 
+                  onClick={() => { setEditProduct(null); setModalOpen(true); }}
+                  className="px-4 py-2 bg-[#0071e3] text-white rounded-full text-sm font-semibold hover:bg-[#0064cc] flex items-center gap-1 shrink-0"
+                >
+                  + Добавить товар
                 </button>
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-              {loading ? (
-                <div className="p-8 text-center text-[#6e6e73]">
-                  <div className="text-3xl mb-2 animate-spin inline-block">⏳</div>
-                  <p className="text-sm">Загрузка из Supabase...</p>
-                </div>
-              ) : (
-                <table className="w-full min-w-[600px]">
-                  <thead>
-                    <tr className="border-b border-[#f5f5f7] bg-[#fafafa]">
-                      {["Товар", "Категория", "Цена", "Статус", ""].map((h) => (
-                        <th key={h} className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3 first:pl-5 last:pr-5">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f5f5f7]">
-                    {filtered.map((p) => (
-                      <tr key={p.id} className="hover:bg-[#fafafa] transition-colors">
-                        {/* Product */}
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 bg-[#f5f5f7] rounded-xl overflow-hidden shrink-0">
-                              {p.image && (
-                                <Image src={p.image} alt={p.name} width={44} height={44}
-                                  className="w-full h-full object-contain p-1" unoptimized />
+            {/* Responsive Product List */}
+            {loading ? (
+              <div className="p-8 text-center text-[#6e6e73]">
+                <div className="text-3xl mb-2 animate-spin inline-block">⏳</div>
+                <p className="text-sm">Загрузка...</p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-14 text-[#6e6e73]">
+                <div className="text-4xl mb-2">📭</div>
+                <p className="font-medium text-sm">Товары не найдены</p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table (>= 768px) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full min-w-[500px] max-w-full table-fixed" style={{ tableLayout: 'fixed', width: '100%' }}>
+                    <thead>
+                      <tr className="border-b border-[#f5f5f7] bg-[#fafafa]">
+                        {["Товар", "Категория", "Цена", "Статус", ""].map((h) => (
+                          <th key={h} className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3 first:pl-5 last:pr-5">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#f5f5f7]">
+                      {filtered.map((p) => (
+                        <tr key={p.id} className="hover:bg-[#fafafa] transition-colors">
+                          {/* Product */}
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 bg-[#f5f5f7] rounded-xl overflow-hidden shrink-0">
+                                {p.image && (
+                                  <Image src={p.image} alt={p.name} width={44} height={44}
+                                    className="w-full h-full object-contain p-1" unoptimized />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-[#1d1d1f] text-sm line-clamp-1">{p.name}</p>
+                                <p className="text-[10px] text-[#6e6e73] line-clamp-1">{p.tagline}</p>
+                                <div className="flex gap-1 mt-0.5">
+                                  {p.badge && <span className="bg-[#0071e3] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">{p.badge}</span>}
+                                  {p.featured && <span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full">Featured</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          {/* Category */}
+                          <td className="px-4 py-3">
+                            <span className="text-[10px] bg-[#f5f5f7] text-[#1d1d1f] px-2 py-1 rounded-full font-medium">{p.category}</span>
+                          </td>
+                          {/* Price */}
+                          <td className="px-4 py-3">
+                            <p className="font-bold text-[#1d1d1f] text-sm whitespace-nowrap">{formatPrice(p.price_kgs)}</p>
+                          </td>
+                          {/* Stock */}
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${p.stock_status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+                              ● {p.stock_status ? "В наличии" : "Нет"}
+                            </span>
+                          </td>
+                          {/* Actions */}
+                          <td className="px-5 py-3">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button onClick={() => { setEditProduct(p); setModalOpen(true); }}
+                                className="px-3 py-2 bg-[#0071e3] text-white rounded-full text-sm font-semibold hover:bg-[#0064cc] flex items-center gap-1 shrink-0"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button onClick={() => handleToggleStock(p)}
+                                className={`px-2.5 py-1.5 text-[10px] font-medium rounded-full border transition-colors ${
+                                  p.stock_status ? "border-[#ff3b30] text-[#ff3b30] hover:bg-red-50" : "border-[#34c759] text-[#34c759] hover:bg-green-50"
+                                }`}>
+                                {p.stock_status ? "Снять" : "Добавить"}
+                              </button>
+                              {deleteConfirm === p.id ? (
+                                <div className="flex gap-1">
+                                  <button onClick={() => handleDelete(p.id)} className="px-2 py-1.5 text-[10px] font-bold bg-[#ff3b30] text-white rounded-full">Да</button>
+                                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1.5 text-[10px] bg-[#f5f5f7] rounded-full">Нет</button>
+                                </div>
+                              ) : (
+                                <button onClick={() => setDeleteConfirm(p.id)}
+                                  className="p-1.5 rounded-full text-[#6e6e73] hover:text-[#ff3b30] hover:bg-red-50 transition-colors">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                                    <path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+                                  </svg>
+                                </button>
                               )}
                             </div>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-[#1d1d1f] text-xs sm:text-sm line-clamp-1">{p.name}</p>
-                              <p className="text-[10px] text-[#6e6e73] line-clamp-1 hidden sm:block">{p.tagline}</p>
-                              <div className="flex gap-1 mt-0.5">
-                                {p.badge && <span className="bg-[#0071e3] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">{p.badge}</span>}
-                                {p.featured && <span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full">Featured</span>}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        {/* Category */}
-                        <td className="px-4 py-3">
-                          <span className="text-[10px] bg-[#f5f5f7] text-[#1d1d1f] px-2 py-1 rounded-full font-medium">{p.category}</span>
-                        </td>
-                        {/* Price */}
-                        <td className="px-4 py-3">
-                          <p className="font-bold text-[#1d1d1f] text-xs sm:text-sm whitespace-nowrap">{formatPrice(p.price_kgs)}</p>
-                        </td>
-                        {/* Stock */}
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${p.stock_status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-                            ● {p.stock_status ? "В наличии" : "Нет"}
-                          </span>
-                        </td>
-                        {/* Actions */}
-                        <td className="px-5 py-3">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button onClick={() => { setEditProduct(p); setModalOpen(true); }}
-                              className="px-2.5 py-1.5 text-[10px] font-medium border border-[#d2d2d7] text-[#1d1d1f] rounded-full hover:border-[#0071e3] hover:text-[#0071e3]">
-                              Изменить
-                            </button>
-                            <button onClick={() => handleToggleStock(p)}
-                              className={`px-2.5 py-1.5 text-[10px] font-medium rounded-full border transition-colors ${
-                                p.stock_status ? "border-[#ff3b30] text-[#ff3b30] hover:bg-red-50" : "border-[#34c759] text-[#34c759] hover:bg-green-50"
-                              }`}>
-                              {p.stock_status ? "Снять" : "Добавить"}
-                            </button>
-                            {deleteConfirm === p.id ? (
-                              <div className="flex gap-1">
-                                <button onClick={() => handleDelete(p.id)} className="px-2 py-1.5 text-[10px] font-bold bg-[#ff3b30] text-white rounded-full">Да</button>
-                                <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1.5 text-[10px] bg-[#f5f5f7] rounded-full">Нет</button>
-                              </div>
-                            ) : (
-                              <button onClick={() => setDeleteConfirm(p.id)}
-                                className="p-1.5 rounded-full text-[#6e6e73] hover:text-[#ff3b30] hover:bg-red-50 transition-colors">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                                  <path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-              {!loading && filtered.length === 0 && (
-                <div className="text-center py-14 text-[#6e6e73]">
-                  <div className="text-4xl mb-2">📭</div>
-                  <p className="font-medium text-sm">Товары не найдены</p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </div>
+
+                {/* Mobile Cards (< 768px) */}
+                <div className="md:hidden space-y-3 px-2 sm:px-0">
+                  {filtered.map((p) => (
+                    <MobileProductCard
+                      key={p.id}
+                      product={p}
+                      onEdit={() => { setEditProduct(p); setModalOpen(true); }}
+                      onToggleStock={() => handleToggleStock(p)}
+                      onDelete={() => handleDelete(p.id)}
+                      deleteConfirm={deleteConfirm === p.id}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

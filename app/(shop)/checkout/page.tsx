@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
 import { formatPrice } from "@/data/products";
-import { CheckoutForm } from "@/types";
+import { CheckoutForm, Lead } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 const WHATSAPP_NUMBER = "996553503794";
 
@@ -20,9 +21,51 @@ export default function CheckoutPage() {
     `💰 *Итого: ${formatPrice(cartTotal)}*` + `*Жду подтверждения заказа и информацию по доставке!*`
   );
 
-  const handleConfirm = () => {
+  const createLead = async (): Promise<string | null> => {
+    try {
+      const leadData = {
+        customer_name: form.name,
+        whatsapp: form.whatsapp,
+        address: form.address,
+        product_name: `Заказ (${cartCount} товаров)`,
+        category: "multiple",
+        message: buildMsg().replace(/%0A/g, '\n').replace(/\*/g, ''),
+        total_amount: cartTotal,
+        source: "checkout" as const,
+        status: "new" as const,
+        priority: cartTotal > 50000 ? "high" : cartTotal > 20000 ? "medium" : "low" as const,
+      };
+
+      const { data, error } = await supabase
+        .from("leads")
+        .insert([leadData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating lead:", error);
+        return null;
+      }
+
+      return data.id;
+    } catch (error) {
+      console.error("Error creating lead:", error);
+      return null;
+    }
+  };
+
+  const handleConfirm = async () => {
     if (!form.name || !form.address || !form.whatsapp) { alert("Заполните все поля"); return; }
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${buildMsg()}`, "_blank");
+    
+    // Create lead first
+    const leadId = await createLead();
+    
+    // Build WhatsApp message with lead reference
+    const msgWithLeadId = leadId 
+      ? `🆔 Lead ID: ${leadId}\n\n` + buildMsg().replace(/%0A/g, '\n').replace(/\*/g, '')
+      : buildMsg();
+    
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msgWithLeadId)}`, "_blank");
     setSubmitted(true); clearCart();
   };
 

@@ -16,6 +16,7 @@ create table if not exists products (
   specs         jsonb not null default '{}',
   stock_status  boolean not null default true,
   featured      boolean not null default false,
+  new_product   boolean not null default false,
   badge         text,
   rating        numeric(3,1),
   review_count  integer default 0,
@@ -169,3 +170,50 @@ insert into products (name, tagline, price_kgs, image, images, category, descrip
   '{"CPU":"AMD Zen 2 @ 3.5GHz","GPU":"AMD RDNA 2","Storage":"825GB NVMe SSD","Resolution":"Up to 8K"}',
   true, false, 'Popular', 4.9, 3210
 );
+
+-- 8. Leads table for tracking customer inquiries and sales
+create table if not exists leads (
+  id            uuid primary key default gen_random_uuid(),
+  customer_name text not null,
+  whatsapp      text not null,
+  address       text,
+  email         text,
+  product_id    uuid references products(id) on delete set null,
+  product_name  text not null,
+  category      text not null,
+  message       text,
+  total_amount  integer,
+  source        text not null default 'checkout', -- checkout, product_page, homepage
+  status        text not null default 'new' check (status in ('new', 'contacted', 'qualified', 'closed', 'lost')),
+  priority      text not null default 'medium' check (priority in ('low', 'medium', 'high')),
+  notes         text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now(),
+  contacted_at  timestamptz
+);
+
+-- 9. Auto-update updated_at for leads
+create trigger leads_updated_at
+  before update on leads
+  for each row execute function update_updated_at();
+
+-- 10. Row Level Security for leads
+alter table leads enable row level security;
+
+create policy "Public can insert leads"
+  on leads for insert to anon with check (true);
+
+create policy "Authenticated can read leads"
+  on leads for select to authenticated using (true);
+
+create policy "Authenticated can update leads"
+  on leads for update to authenticated using (true);
+
+create policy "Authenticated can delete leads"
+  on leads for delete to authenticated using (true);
+
+-- 11. Indexes for better performance
+create index idx_leads_status on leads(status);
+create index idx_leads_created_at on leads(created_at desc);
+create index idx_leads_product_id on leads(product_id);
+create index idx_leads_source on leads(source);

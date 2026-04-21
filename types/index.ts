@@ -15,6 +15,7 @@ export interface Product {
   specs: Record<string, string>;
   stock_status: boolean;       // Supabase snake_case
   featured: boolean;
+  new_product: boolean;        // Brand new for marketing sections
   badge?: string;
   rating?: number;
   review_count?: number;
@@ -52,3 +53,25 @@ export interface CategoryNavItem {
   value: Category | "all";
   emoji: string;
 }
+
+export interface Lead {
+  id: string;
+  customer_name: string;
+  whatsapp: string;
+  address?: string;
+  email?: string;
+  product_id?: string;
+  product_name: string;
+  category: string;
+  message?: string;
+  total_amount?: number;
+  source: "checkout" | "product_page" | "homepage";
+  status: LeadStatus;
+  priority: "low" | "medium" | "high";
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  contacted_at?: string;
+}
+
+export type LeadStatus = "new" | "contacted" | "qualified" | "closed" | "lost";

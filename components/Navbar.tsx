@@ -100,8 +100,9 @@ export default function Navbar() {
           {/* ── Desktop nav links ── */}
           <nav className="hidden lg:flex items-center gap-0.5 mx-auto">
             {desktopLinks.map((l) => (
-              <button
+              <Link
                 key={l.cat}
+                href={l.cat === "all" ? "/" : `/?category=${l.cat}`}
                 onClick={() => handleCategoryClick(l.cat)}
                 className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
                   activeCategory === l.cat
@@ -110,7 +111,7 @@ export default function Navbar() {
                 }`}
               >
                 {l.label}
-              </button>
+              </Link>
             ))}
           </nav>
 
