@@ -38,6 +38,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       return;
     }
 
+    if (!supabase) {
+      alert("Service temporarily unavailable. Please try again later.");
+      return;
+    }
+
     try {
       const leadData = {
         customer_name: contactForm.name,

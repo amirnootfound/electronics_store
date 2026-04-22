@@ -22,6 +22,11 @@ export default function CheckoutPage() {
   );
 
   const createLead = async (): Promise<string | null> => {
+    if (!supabase) {
+      console.error("Supabase client not initialized");
+      return null;
+    }
+
     try {
       const leadData = {
         customer_name: form.name,

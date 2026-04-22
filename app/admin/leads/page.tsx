@@ -324,6 +324,12 @@ export default function LeadsDashboard() {
   }, [router]);
 
   const fetchLeads = useCallback(async () => {
+    if (!supabase) {
+      console.error("Supabase client not initialized");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -374,6 +380,12 @@ export default function LeadsDashboard() {
   };
 
   const updateLead = async (id: string, updates: Partial<Lead>) => {
+    if (!supabase) {
+      console.error("Supabase client not initialized");
+      showNotification("Service temporarily unavailable");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("leads")
@@ -397,6 +409,12 @@ export default function LeadsDashboard() {
     // Custom confirmation dialog instead of browser alert
     const confirmed = window.confirm("Are you sure you want to delete this lead?\n\nThis action cannot be undone.");
     if (!confirmed) return;
+    
+    if (!supabase) {
+      console.error("Supabase client not initialized");
+      showNotification("Service temporarily unavailable");
+      return;
+    }
     
     try {
       const { error } = await supabase
