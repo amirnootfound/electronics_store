@@ -1,6 +1,7 @@
 "use client";
 // ============================================================
 // PRODUCT CARD — 2-col on mobile, heart always visible
+// Universal Electronics Store
 // ============================================================
 
 import { useState } from "react";
@@ -9,6 +10,7 @@ import Image from "next/image";
 import { Product } from "@/types";
 import { formatPrice } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const HeartIcon = ({ filled }: { filled: boolean }) => (
   <svg width="15" height="15" viewBox="0 0 24 24"
@@ -48,6 +50,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
   const { addToCart, toggleWishlist, isWishlisted, addRecentlyViewed } = useStore();
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
   const [added, setAdded] = useState(false);
   const wishlisted = isWishlisted(product.id);
 
@@ -86,9 +89,9 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
           </div>
           <div className="flex items-center justify-between mt-2">
             <div>
-              <p className="font-bold text-[#1d1d1f] text-base sm:text-lg">{formatPrice(product.price_kgs)}</p>
+              <p className="font-bold text-[#1d1d1f] text-base sm:text-lg">{formatCurrencyPrice(product.price_kgs)}</p>
               <span className={`text-xs font-medium ${product.stock_status ? "text-[#34c759]" : "text-[#ff3b30]"}`}>
-                {product.stock_status ? "В наличии" : "Нет в наличии"}
+                {product.stock_status ? "In Stock" : "Out of Stock"}
               </span>
             </div>
             <button onClick={handleCart} disabled={!product.stock_status}
@@ -98,7 +101,7 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
                   : "bg-[#f5f5f7] text-[#c7c7cc] cursor-not-allowed"
               }`}
             >
-              {added ? "✓" : "В корзину"}
+              {added ? "✓" : "Add to Cart"}
             </button>
           </div>
         </div>
@@ -119,7 +122,7 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
         )}
         {!product.stock_status && (
           <span className="bg-[#ff3b30] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase">
-            Нет
+            Out
           </span>
         )}
       </div>
@@ -167,9 +170,17 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
         <div className="flex-1" />
 
         <div className="mt-1.5">
-          <p className="font-black text-[#1d1d1f] text-sm sm:text-lg leading-tight">{formatPrice(product.price_kgs)}</p>
+          <p className="font-black text-[#1d1d1f] text-sm sm:text-lg leading-tight">{formatCurrencyPrice(product.price_kgs)}</p>
           <p className={`text-[10px] sm:text-xs font-medium mt-0.5 ${product.stock_status ? "text-[#34c759]" : "text-[#ff3b30]"}`}>
-            {product.stock_status ? "● В наличии" : "● Нет в наличии"}
+            {product.stock_status ? (
+              product.stock_quantity !== undefined && product.stock_quantity !== null ? (
+                `● ${product.stock_quantity} left in stock`
+              ) : (
+                "● In Stock"
+              )
+            ) : (
+              "● Out of Stock"
+            )}
           </p>
         </div>
 
@@ -182,7 +193,7 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
               : "bg-[#0071e3] text-white hover:bg-[#0064cc] active:scale-95"
           }`}
         >
-          {added ? "✓ Добавлено" : !product.stock_status ? "Нет в наличии" : <><CartIconSm /> В корзину</>}
+          {added ? "✓ Added" : !product.stock_status ? "Out of Stock" : <><CartIconSm /> Add to Cart</>}
         </button>
       </div>
     </div>

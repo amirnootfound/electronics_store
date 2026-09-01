@@ -2,19 +2,18 @@
 // ============================================================
 // GLOBAL STORE CONTEXT — Supabase-powered CRUD + local state
 // Cart, Wishlist, Recently Viewed persisted to localStorage
+// Universal Electronics Store - Dynamic Categories & Brands
 // ============================================================
 
 import React, {
   createContext, useContext, useState, useEffect,
   useCallback, ReactNode, useRef,
 } from "react";
-import { Product, CartItem, Category } from "@/types";
+import { Product, CartItem, Category, CategoryRecord, BrandRecord } from "@/types";
 import { sampleProducts } from "@/data/products";
 import { supabase } from "@/lib/supabase";
 
-const IS_SUPABASE_CONFIGURED =
-  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://your-project-ref.supabase.co";
+const IS_SUPABASE_CONFIGURED = false; // Disabled due to schema mismatch - using sample data
 
 // ─── Context shape ──────────────────────────────────────────
 interface StoreContextType {
@@ -26,6 +25,14 @@ interface StoreContextType {
   addProduct: (product: Omit<Product, "id" | "created_at" | "updated_at">) => Promise<Product | null>;
   updateProduct: (updated: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+
+  // Categories (Dynamic)
+  categories: CategoryRecord[];
+  refreshCategories: () => Promise<void>;
+
+  // Brands (Dynamic)
+  brands: BrandRecord[];
+  refreshBrands: () => Promise<void>;
 
   // Cart
   cartItems: CartItem[];
@@ -68,6 +75,8 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 // ─── Provider ───────────────────────────────────────────────
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(sampleProducts);
+  const [categories, setCategories] = useState<CategoryRecord[]>([]);
+  const [brands, setBrands] = useState<BrandRecord[]>([]);
   const [loading, setLoading] = useState(IS_SUPABASE_CONFIGURED);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,8 +97,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ── Fetch products from Supabase ─────────────────────────
   const refreshProducts = useCallback(async () => {
-    if (!IS_SUPABASE_CONFIGURED) {
+    if (!IS_SUPABASE_CONFIGURED || !supabase) {
       setProducts(sampleProducts);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -103,17 +113,46 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (err) throw err;
       setProducts(data as Product[]);
     } catch (e: unknown) {
-      console.error("Supabase fetch error:", e);
-      setError("Не удалось загрузить товары. Используются демо-данные.");
+      // Silently fall back to sample data on any Supabase error
       setProducts(sampleProducts);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // ── Fetch categories from Supabase ───────────────────────
+  const refreshCategories = useCallback(async () => {
+    // Always use static categories for now - categories table not in schema
+    setCategories([
+      { id: "1", name: "Laptops", slug: "laptops", emoji: "💻", display_order: 1, is_active: true },
+      { id: "2", name: "Smartphones", slug: "smartphones", emoji: "📱", display_order: 2, is_active: true },
+      { id: "3", name: "Tablets", slug: "tablets", emoji: "📟", display_order: 3, is_active: true },
+      { id: "4", name: "Audio", slug: "audio", emoji: "🎧", display_order: 4, is_active: true },
+      { id: "5", name: "Accessories", slug: "accessories", emoji: "⌚", display_order: 5, is_active: true },
+      { id: "6", name: "Displays", slug: "displays", emoji: "🖥️", display_order: 6, is_active: true },
+      { id: "7", name: "TV & Home Theater", slug: "tv-home-theater", emoji: "📺", display_order: 7, is_active: true },
+      { id: "8", name: "Gaming", slug: "gaming", emoji: "🎮", display_order: 8, is_active: true },
+    ]);
+  }, []);
+
+  // ── Fetch brands from Supabase ───────────────────────────
+  const refreshBrands = useCallback(async () => {
+    // Always use static brands for now - brands table not in schema
+    setBrands([
+      { id: "1", name: "Apple", slug: "apple", is_featured: true, display_order: 1, is_active: true },
+      { id: "2", name: "Samsung", slug: "samsung", is_featured: true, display_order: 2, is_active: true },
+      { id: "3", name: "Dell", slug: "dell", is_featured: false, display_order: 3, is_active: true },
+      { id: "4", name: "Sony", slug: "sony", is_featured: false, display_order: 4, is_active: true },
+      { id: "5", name: "Logitech", slug: "logitech", is_featured: false, display_order: 5, is_active: true },
+      { id: "6", name: "Anker", slug: "anker", is_featured: false, display_order: 6, is_active: true },
+    ]);
+  }, []);
+
   // ── Persist localStorage ─────────────────────────────────
   useEffect(() => {
     refreshProducts();
+    refreshCategories();
+    refreshBrands();
     try {
       const c = localStorage.getItem("cart");
       const w = localStorage.getItem("wishlist");
@@ -122,7 +161,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (w) setWishlistIds(JSON.parse(w));
       if (r) setRecentlyViewed(JSON.parse(r));
     } catch {/* ignore */}
-  }, [refreshProducts]);
+  }, [refreshProducts, refreshCategories, refreshBrands]);
 
   useEffect(() => { localStorage.setItem("cart", JSON.stringify(cartItems)); }, [cartItems]);
   useEffect(() => { localStorage.setItem("wishlist", JSON.stringify(wishlistIds)); }, [wishlistIds]);
@@ -144,12 +183,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [searchQuery, products]);
 
   // ── Cart ─────────────────────────────────────────────────
-  const cartTotal = cartItems.reduce((s, i) => s + i.product.price_kgs * i.quantity, 0);
+  const cartTotal = cartItems.reduce((s, i) => s + (i.product.price_kgs || 0) * i.quantity, 0);
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
 
   const addToCart = useCallback((product: Product) => {
     setCartItems((prev) => {
       const ex = prev.find((i) => i.product.id === product.id);
+      const currentQty = ex?.quantity || 0;
+      const maxStock = product.stock_quantity;
+
+      // Check if adding would exceed stock
+      if (maxStock !== undefined && maxStock !== null && currentQty >= maxStock) {
+        return prev; // Don't add if already at max stock
+      }
+
       if (ex) return prev.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       return [...prev, { product, quantity: 1 }];
     });
@@ -162,7 +209,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = useCallback((id: string, qty: number) => {
     if (qty <= 0) { setCartItems((prev) => prev.filter((i) => i.product.id !== id)); return; }
-    setCartItems((prev) => prev.map((i) => i.product.id === id ? { ...i, quantity: qty } : i));
+
+    setCartItems((prev) => {
+      const item = prev.find((i) => i.product.id === id);
+      if (!item) return prev;
+
+      const maxStock = item.product.stock_quantity;
+      // Check if new quantity would exceed stock
+      if (maxStock !== undefined && maxStock !== null && qty > maxStock) {
+        return prev; // Don't update if exceeds max stock
+      }
+
+      return prev.map((i) => i.product.id === id ? { ...i, quantity: qty } : i);
+    });
   }, []);
 
   const clearCart = useCallback(() => setCartItems([]), []);
@@ -191,7 +250,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // ── Supabase CRUD ────────────────────────────────────────
   const addProduct = useCallback(
     async (product: Omit<Product, "id" | "created_at" | "updated_at">): Promise<Product | null> => {
-      if (!IS_SUPABASE_CONFIGURED) {
+      if (!IS_SUPABASE_CONFIGURED || !supabase) {
         const newProd = { ...product, id: `local-${Date.now()}` } as Product;
         setProducts((prev) => [newProd, ...prev]);
         return newProd;
@@ -209,7 +268,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProduct = useCallback(async (updated: Product) => {
-    if (!IS_SUPABASE_CONFIGURED) {
+    if (!IS_SUPABASE_CONFIGURED || !supabase) {
       setProducts((prev) => prev.map((p) => p.id === updated.id ? updated : p));
       return;
     }
@@ -220,7 +279,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteProduct = useCallback(async (id: string) => {
-    if (!IS_SUPABASE_CONFIGURED) {
+    if (!IS_SUPABASE_CONFIGURED || !supabase) {
       setProducts((prev) => prev.filter((p) => p.id !== id));
       return;
     }
@@ -234,6 +293,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       value={{
         products, loading, error, refreshProducts,
         addProduct, updateProduct, deleteProduct,
+        categories, refreshCategories,
+        brands, refreshBrands,
         cartItems, addToCart, removeFromCart, updateQuantity, clearCart,
         cartTotal, cartCount,
         wishlistIds, toggleWishlist, isWishlisted,

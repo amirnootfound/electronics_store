@@ -1,24 +1,26 @@
 "use client";
 // ============================================================
 // ADMIN DASHBOARD — Supabase-powered CRUD with image upload
+// Universal Electronics Store
 // ============================================================
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Product, Category } from "@/types";
 import { formatPrice } from "@/data/products";
 import ImageUploader from "@/components/admin/ImageUploader";
 
 const CATEGORIES: Category[] = [
-  "MacBook","iPhone","iPad","Apple Watch","AirPods",
-  "Accessories","Samsung","Headphones","Monitors","Gaming",
+  "Laptops","Smartphones","Tablets","Audio","Accessories",
+  "Displays","TV & Home Theater","Gaming",
 ];
 
 const emptyForm = (): Omit<Product, "id" | "created_at" | "updated_at"> => ({
-  name: "", tagline: "", price_kgs: 0, currency: "KGS",
-  image: "", images: [], category: "iPhone",
+  name: "", tagline: "", price_kgs: 0, currency: "USD",
+  image: "", images: [], category: "Smartphones",
   description: "", specs: {}, stock_status: true,
   featured: false, new_product: false, badge: "", rating: 0, review_count: 0,
 });
@@ -44,6 +46,7 @@ function ProductModal({ product, onSave, onClose }: {
   onSave: (data: Omit<Product, "id" | "created_at" | "updated_at"> & { id?: string }) => void;
   onClose: () => void;
 }) {
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
   const isNew = !product?.id;
   const [form, setForm] = useState<Omit<Product, "id" | "created_at" | "updated_at"> & { id?: string }>(
     product ? { ...emptyForm(), ...product } : emptyForm()
@@ -53,6 +56,22 @@ function ProductModal({ product, onSave, onClose }: {
   );
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"basic" | "media" | "specs">("basic");
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+    return () => {
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    };
+  }, []);
 
   const parseSpecs = (text: string): Record<string, string> => {
     const r: Record<string, string> = {};
@@ -68,16 +87,16 @@ function ProductModal({ product, onSave, onClose }: {
   }, []);
 
   const handleSave = async () => {
-    if (!form.name || !form.price_kgs) { alert("Заполните название и цену"); return; }
+    if (!form.name || !form.price_kgs) { alert("Please fill in name and price"); return; }
     setSaving(true);
     await onSave({ ...form, specs: parseSpecs(specsText) });
     setSaving(false);
   };
 
   const tabs = [
-    { id: "basic", label: "Основное" },
-    { id: "media", label: "Фотографии" },
-    { id: "specs", label: "Характеристики" },
+    { id: "basic", label: "Basic" },
+    { id: "media", label: "Photos" },
+    { id: "specs", label: "Specifications" },
   ] as const;
 
   return (
@@ -87,7 +106,7 @@ function ProductModal({ product, onSave, onClose }: {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#f5f5f7] shrink-0">
           <h2 className="text-base font-bold text-[#1d1d1f]">
-            {isNew ? "➕ Добавить товар" : "✏️ Редактировать товар"}
+            {isNew ? "➕ Add Product" : "✏️ Edit Product"}
           </h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f5f5f7] text-[#6e6e73] text-lg">×</button>
         </div>
@@ -115,53 +134,53 @@ function ProductModal({ product, onSave, onClose }: {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Название *</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Name *</label>
                   <input type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder='MacBook Pro 16"'
                     className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Слоган</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Tagline</label>
                   <input type="text" value={form.tagline} onChange={(e) => setForm((f) => ({ ...f, tagline: e.target.value }))}
                     placeholder="Mind-blowingly fast."
                     className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Цена (KGS) *</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Price (USD) *</label>
                   <input type="number" value={form.price_kgs || ""} onChange={(e) => setForm((f) => ({ ...f, price_kgs: Number(e.target.value) }))}
-                    placeholder="89900"
+                    placeholder="899.99"
                     className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Категория</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Category</label>
                   <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as Category }))}
                     className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm">
                     {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Бейдж</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Badge</label>
                   <input type="text" value={form.badge || ""} onChange={(e) => setForm((f) => ({ ...f, badge: e.target.value }))}
                     placeholder="New / Popular / Sale"
                     className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm" />
                 </div>
                 <div className="flex items-center gap-3 pt-5">
                   <ToggleSwitch checked={form.stock_status} onChange={(v) => setForm((f) => ({ ...f, stock_status: v }))} color="green" />
-                  <span className="text-sm font-medium text-[#1d1d1f]">{form.stock_status ? "✅ В наличии" : "❌ Нет в наличии"}</span>
+                  <span className="text-sm font-medium text-[#1d1d1f]">{form.stock_status ? "✅ In Stock" : "❌ Out of Stock"}</span>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Описание</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1.5">Description</label>
                   <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                    rows={3} placeholder="Подробное описание..."
+                    rows={3} placeholder="Detailed description..."
                     className="w-full px-3.5 py-2.5 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm resize-none" />
                 </div>
                 <div className="flex items-center gap-3">
                   <ToggleSwitch checked={!!form.featured} onChange={(v) => setForm((f) => ({ ...f, featured: v }))} color="blue" />
-                  <span className="text-sm font-medium text-[#1d1d1f]"></span>
+                  <span className="text-sm font-medium text-[#1d1d1f]">Featured</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <ToggleSwitch checked={!!form.new_product} onChange={(v) => setForm((f) => ({ ...f, new_product: v }))} color="blue" />
-                  <span className="text-sm font-medium text-[#1d1d1f]">Новый</span>
+                  <span className="text-sm font-medium text-[#1d1d1f]">New</span>
                 </div>
               </div>
             </div>
@@ -171,8 +190,8 @@ function ProductModal({ product, onSave, onClose }: {
           {activeTab === "media" && (
             <div>
               <p className="text-xs text-[#6e6e73] mb-4">
-                Загружайте несколько изображений товара. Первое — главное фото в каталоге.
-                {" "}Файлы автоматически сохраняются в Supabase Storage.
+                Upload multiple product images. The first image will be the main photo in the catalog.
+                {" "}Files are automatically saved to Supabase Storage.
               </p>
               <ImageUploader images={form.images} onChange={handleImageChange} />
             </div>
@@ -182,7 +201,7 @@ function ProductModal({ product, onSave, onClose }: {
           {activeTab === "specs" && (
             <div>
               <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">
-                Характеристики — каждая с новой строки, формат: <code className="bg-[#f5f5f7] px-1 rounded text-[10px]">Ключ: Значение</code>
+                Specifications — each on a new line, format: <code className="bg-[#f5f5f7] px-1 rounded text-[10px]">Key: Value</code>
               </label>
               <textarea
                 value={specsText}
@@ -192,7 +211,7 @@ function ProductModal({ product, onSave, onClose }: {
                 className="w-full px-3.5 py-3 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-xs font-mono resize-none leading-relaxed"
               />
               <div className="mt-3 bg-[#f9f9fb] rounded-xl p-4">
-                <p className="text-xs font-semibold text-[#6e6e73] mb-2">Предпросмотр:</p>
+                <p className="text-xs font-semibold text-[#6e6e73] mb-2">Preview:</p>
                 <dl className="space-y-1.5">
                   {Object.entries(parseSpecs(specsText)).map(([k, v]) => (
                     <div key={k} className="flex gap-3 text-xs">
@@ -210,11 +229,11 @@ function ProductModal({ product, onSave, onClose }: {
         <div className="flex gap-3 px-6 py-4 border-t border-[#f5f5f7] shrink-0">
           <button onClick={onClose}
             className="flex-1 py-2.5 border border-[#d2d2d7] text-[#1d1d1f] rounded-full text-sm font-medium hover:bg-[#f5f5f7]">
-            Отмена
+            Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-2.5 bg-[#0071e3] text-white rounded-full text-sm font-semibold hover:bg-[#0064cc] disabled:opacity-60 disabled:cursor-not-allowed">
-            {saving ? "Сохранение..." : isNew ? "Добавить товар" : "Сохранить изменения"}
+            {saving ? "Saving..." : isNew ? "Add Product" : "Save Changes"}
           </button>
         </div>
       </div>
@@ -260,7 +279,7 @@ function MobileProductCard({ product, onEdit, onToggleStock, onDelete, deleteCon
           <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
             product.stock_status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
           }`}>
-            {product.stock_status ? "В наличии" : "Не в наличии"}
+            {product.stock_status ? "In Stock" : "Out of Stock"}
           </span>
         </div>
         <button
@@ -282,7 +301,7 @@ function MobileProductCard({ product, onEdit, onToggleStock, onDelete, deleteCon
             onClick={onEdit}
             className="flex-1 py-2.5 text-sm font-medium border border-[#d2d2d7] text-[#1d1d1f] rounded-lg hover:border-[#0071e3] hover:text-[#0071e3] transition-colors min-h-[44px]"
           >
-            Изменить
+            Edit
           </button>
           <button
             onClick={onToggleStock}
@@ -292,7 +311,7 @@ function MobileProductCard({ product, onEdit, onToggleStock, onDelete, deleteCon
                 : 'border-green-200 text-green-600 bg-green-50 hover:bg-green-100'
             }`}
           >
-            {product.stock_status ? "Не в наличии" : "В наличии"}
+            {product.stock_status ? "Out of Stock" : "In Stock"}
           </button>
           {deleteConfirm ? (
             <div className="flex gap-2">
@@ -370,10 +389,10 @@ export default function AdminDashboard() {
   const handleSave = async (data: Omit<Product, "id" | "created_at" | "updated_at"> & { id?: string }) => {
     if (data.id) {
       await updateProduct(data as Product);
-      showNotification("✅ Товар обновлён");
+      showNotification("✅ Product updated");
     } else {
       await addProduct(data);
-      showNotification("✅ Товар добавлен");
+      showNotification("✅ Product added");
     }
     setModalOpen(false);
     setEditProduct(null);
@@ -382,18 +401,18 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     await deleteProduct(id);
     setDeleteConfirm(null);
-    showNotification("🗑️ Товар удалён");
+    showNotification("🗑️ Product deleted");
   };
 
   const handleToggleStock = async (product: Product) => {
     await updateProduct({ ...product, stock_status: !product.stock_status });
-    showNotification(`${!product.stock_status ? "✅" : "❌"} Статус обновлён`);
+    showNotification(`${!product.stock_status ? "✅" : "❌"} Status updated`);
   };
 
   const filtered = products.filter((p) => {
     const matchQ = p.name.toLowerCase().includes(searchQ.toLowerCase()) ||
       p.category.toLowerCase().includes(searchQ.toLowerCase());
-    const matchCat = catFilter === "all" || p.category === catFilter;
+    const matchCat = catFilter === "all" || p.category.toLowerCase() === catFilter.toLowerCase();
     return matchQ && matchCat;
   });
 
@@ -434,7 +453,7 @@ export default function AdminDashboard() {
                   activeTab === t ? "bg-[#1d1d1f] text-white" : "text-[#6e6e73] hover:text-[#1d1d1f]"
                 }`}
               >
-                {t === "products" ? "Товары" : "Аналитика"}
+                {t === "products" ? "Products" : "Analytics"}
               </button>
             ))}
             <button 
@@ -490,7 +509,7 @@ export default function AdminDashboard() {
                       onClick={() => { window.open("/", "_blank"); setShowMobileMenu(false); }}
                       className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
                     >
-                      Магазин
+                      Shop
                     </button>
                   </div>
                 </div>
@@ -520,7 +539,7 @@ export default function AdminDashboard() {
                     activeTab === t ? "bg-[#1d1d1f] text-white" : "text-[#6e6e73] hover:text-[#1d1d1f]"
                   }`}
                 >
-                  {t === "products" ? "Товары" : "Аналитика"}
+                  {t === "products" ? "Products" : "Analytics"}
                 </button>
               ))}
             </div>
@@ -531,17 +550,17 @@ export default function AdminDashboard() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <StatCard label="Всего товаров" value={products.length} icon="📦" colorClass="bg-blue-50" />
-          <StatCard label="В наличии" value={inStock} icon="✅" colorClass="bg-green-50" />
-          <StatCard label="Нет в наличии" value={products.length - inStock} icon="❌" colorClass="bg-red-50" />
-          <StatCard label="Стоимость каталога" value={`${(totalValue / 1000).toFixed(0)}K`} icon="💰" colorClass="bg-yellow-50" />
+          <StatCard label="Total Products" value={products.length} icon="📦" colorClass="bg-blue-50" />
+          <StatCard label="In Stock" value={inStock} icon="✅" colorClass="bg-green-50" />
+          <StatCard label="Out of Stock" value={products.length - inStock} icon="❌" colorClass="bg-red-50" />
+          <StatCard label="Catalog Value" value={`${(totalValue / 1000).toFixed(0)}K`} icon="💰" colorClass="bg-yellow-50" />
         </div>
 
         {/* ── ANALYTICS TAB ── */}
         {activeTab === "stats" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 fade-in">
             <div className="bg-white rounded-2xl border border-[#e8e8ed] p-6">
-              <h3 className="font-bold text-[#1d1d1f] mb-5">Товары по категориям</h3>
+              <h3 className="font-bold text-[#1d1d1f] mb-5">Products by Category</h3>
               {CATEGORIES.map((cat) => {
                 const count = products.filter((p) => p.category === cat).length;
                 if (!count) return null;
@@ -559,7 +578,7 @@ export default function AdminDashboard() {
               })}
             </div>
             <div className="bg-white rounded-2xl border border-[#e8e8ed] p-6">
-              <h3 className="font-bold text-[#1d1d1f] mb-5">Топ-5 по цене</h3>
+              <h3 className="font-bold text-[#1d1d1f] mb-5">Top 5 by Price</h3>
               {[...products].sort((a, b) => b.price_kgs - a.price_kgs).slice(0, 5).map((p, i) => (
                 <div key={p.id} className="flex items-center gap-3 mb-3">
                   <span className="w-6 h-6 bg-[#f5f5f7] rounded-full flex items-center justify-center text-xs font-bold text-[#6e6e73]">{i + 1}</span>
@@ -578,7 +597,7 @@ export default function AdminDashboard() {
             <div className="p-4 sm:p-5 border-b border-[#f5f5f7] space-y-3">
               {/* Header */}
               <h2 className="text-base sm:text-lg font-bold text-[#1d1d1f]">
-                Товары
+                Products
                 <span className="ml-2 text-xs font-normal text-[#6e6e73]">({filtered.length} of {products.length})</span>
               </h2>
               
@@ -604,7 +623,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setCatFilter(e.target.value as never)}
                   className="w-full px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]"
                 >
-                  <option value="all">Все</option>
+                  <option value="all">All</option>
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
@@ -624,7 +643,7 @@ export default function AdminDashboard() {
                     onChange={(e) => setCatFilter(e.target.value as never)}
                     className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
                   >
-                    <option value="all">Все</option>
+                    <option value="all">All</option>
                     {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
@@ -632,7 +651,7 @@ export default function AdminDashboard() {
                   onClick={() => { setEditProduct(null); setModalOpen(true); }}
                   className="px-4 py-2 bg-[#0071e3] text-white rounded-full text-sm font-semibold hover:bg-[#0064cc] flex items-center gap-1 shrink-0"
                 >
-                  + Добавить товар
+                  + Add Product
                 </button>
               </div>
             </div>
@@ -641,12 +660,12 @@ export default function AdminDashboard() {
             {loading ? (
               <div className="p-8 text-center text-[#6e6e73]">
                 <div className="text-3xl mb-2 animate-spin inline-block">⏳</div>
-                <p className="text-sm">Загрузка...</p>
+                <p className="text-sm">Loading...</p>
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-14 text-[#6e6e73]">
                 <div className="text-4xl mb-2">📭</div>
-                <p className="font-medium text-sm">Товары не найдены</p>
+                <p className="font-medium text-sm">No products found</p>
               </div>
             ) : (
               <>
@@ -655,7 +674,7 @@ export default function AdminDashboard() {
                   <table className="w-full min-w-[500px] max-w-full table-fixed" style={{ tableLayout: 'fixed', width: '100%' }}>
                     <thead>
                       <tr className="border-b border-[#f5f5f7] bg-[#fafafa]">
-                        {["Товар", "Категория", "Цена", "Статус", ""].map((h) => (
+                        {["Product", "Category", "Price", "Status", ""].map((h) => (
                           <th key={h} className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3 first:pl-5 last:pr-5">
                             {h}
                           </th>
@@ -695,7 +714,7 @@ export default function AdminDashboard() {
                           {/* Stock */}
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${p.stock_status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-                              ● {p.stock_status ? "В наличии" : "Нет"}
+                              ● {p.stock_status ? "In Stock" : "Out"}
                             </span>
                           </td>
                           {/* Actions */}
@@ -710,12 +729,12 @@ export default function AdminDashboard() {
                                 className={`px-2.5 py-1.5 text-[10px] font-medium rounded-full border transition-colors ${
                                   p.stock_status ? "border-[#ff3b30] text-[#ff3b30] hover:bg-red-50" : "border-[#34c759] text-[#34c759] hover:bg-green-50"
                                 }`}>
-                                {p.stock_status ? "Снять" : "Добавить"}
+                                {p.stock_status ? "Remove" : "Add"}
                               </button>
                               {deleteConfirm === p.id ? (
                                 <div className="flex gap-1">
-                                  <button onClick={() => handleDelete(p.id)} className="px-2 py-1.5 text-[10px] font-bold bg-[#ff3b30] text-white rounded-full">Да</button>
-                                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1.5 text-[10px] bg-[#f5f5f7] rounded-full">Нет</button>
+                                  <button onClick={() => handleDelete(p.id)} className="px-2 py-1.5 text-[10px] font-bold bg-[#ff3b30] text-white rounded-full">Yes</button>
+                                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1.5 text-[10px] bg-[#f5f5f7] rounded-full">No</button>
                                 </div>
                               ) : (
                                 <button onClick={() => setDeleteConfirm(p.id)}

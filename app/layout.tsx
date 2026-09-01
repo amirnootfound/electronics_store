@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { StoreProvider } from "@/context/StoreContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import Navbar from "@/components/Navbar";
 import CartSidebar from "@/components/CartSidebar";
 import SearchModal from "@/components/SearchModal";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "TechStore KG — Premium Electronics Bishkek",
-  description: "Официальный магазин Apple, Samsung и премиальной электроники в Бишкеке, Кыргызстан. Быстрая доставка, гарантия, рассрочка.",
-  keywords: "Apple, MacBook, iPhone, iPad, Samsung, электроника, Бишкек, Кыргызстан",
+  title: "TechStore — Premium Electronics Store",
+  description: "Your trusted electronics store for Apple, Samsung, and premium electronics. Fast delivery, warranty, and flexible payment options.",
+  keywords: "Apple, MacBook, iPhone, iPad, Samsung, electronics, premium, online store",
   openGraph: {
-    title: "TechStore KG",
-    description: "Premium electronics in Bishkek",
+    title: "TechStore — Premium Electronics",
+    description: "Your trusted electronics store for premium devices",
     type: "website",
   },
 };
@@ -25,22 +26,23 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className="bg-white text-[#333] antialiased">
-        <StoreProvider>
-          <SearchModal />
-          <CartSidebar />
-          <main className="min-h-screen">{children}</main>
+        <CurrencyProvider>
+          <StoreProvider>
+            <SearchModal />
+            <CartSidebar />
+            <main className="min-h-screen">{children}</main>
 
           {/* Footer */}
           <footer className="bg-[#f5f5f7] border-t border-[#d2d2d7] mt-12 sm:mt-20">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-12 sm:py-16">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
                 {[
-                  { title: "Магазин", links: [{ label: "Главная", href: "/" }, { label: "Избранное", href: "/wishlist" }, { label: "Корзина", href: "/cart" }, { label: "Заказать", href: "/checkout" }] },
-                  { title: "Категории", links: [{ label: "MacBook", href: "/" }, { label: "iPhone", href: "/" }, { label: "iPad", href: "/" }, { label: "Apple Watch", href: "/" }] },
-                  { title: "Поддержка", links: [{ label: "О нас", href: "/" }, { label: "Доставка", href: "/" }, { label: "Гарантия", href: "/" }, { label: "Возврат", href: "/" }] },
-                  { title: "Контакты", links: [{ label: "пр. Чуй 123, Бишкек", href: "/" }, { label: "+996 700 123 456", href: "tel:+996700123456" }, { label: "info@techstore.kg", href: "mailto:info@techstore.kg" }] },
+                  { title: "Shop", links: [{ label: "Home", href: "/" }, { label: "Wishlist", href: "/wishlist" }, { label: "Cart", href: "/cart" }, { label: "Checkout", href: "/checkout" }] },
+                  { title: "Categories", links: [{ label: "Laptops", href: "/" }, { label: "Smartphones", href: "/" }, { label: "Tablets", href: "/" }, { label: "Accessories", href: "/" }] },
+                  { title: "Support", links: [{ label: "About Us", href: "/" }, { label: "Delivery", href: "/" }, { label: "Warranty", href: "/" }, { label: "Returns", href: "/" }] },
+                  { title: "Contact", links: [{ label: "123 Main St, City", href: "/" }, { label: "+1 (555) 123-4567", href: "tel:+15551234567" }, { label: "info@techstore.com", href: "mailto:info@techstore.com" }] },
                 ].map((col) => (
                   <div key={col.title}>
                     <h4 className="font-semibold text-[#1d1d1f] mb-4 text-sm">{col.title}</h4>
@@ -53,14 +55,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 ))}
               </div>
               <div className="border-t border-[#d2d2d7] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6e6e73]">
-                <p>© 2026 TechStore KG. Все права защищены.</p>
+                <p>© 2026 TechStore. All rights reserved.</p>
                 <Link href="/admin" className="hover:text-[#0071e3]">
-                  Панель администратора
+                  Admin Panel
                 </Link>
               </div>
             </div>
           </footer>
-        </StoreProvider>
+          </StoreProvider>
+        </CurrencyProvider>
       </body>
     </html>
   );

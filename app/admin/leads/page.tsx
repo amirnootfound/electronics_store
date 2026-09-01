@@ -1,22 +1,24 @@
 "use client";
 // ============================================================
 // ADMIN LEADS DASHBOARD - Track and manage customer inquiries
+// Universal Electronics Store
 // ============================================================
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Lead, LeadStatus } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { formatPrice } from "@/data/products";
 
 // Lead status configuration
 const LEAD_STATUS_CONFIG = {
-  new: { label: "Новый", color: "bg-blue-100 text-blue-800", icon: "·" },
-  contacted: { label: "Связан", color: "bg-yellow-100 text-yellow-800", icon: "·" },
-  qualified: { label: "Квалифицирован", color: "bg-purple-100 text-purple-800", icon: "·" },
-  closed: { label: "Закрыт", color: "bg-green-100 text-green-800", icon: "·" },
-  lost: { label: "Потерян", color: "bg-red-100 text-red-800", icon: "·" },
+  new: { label: "New", color: "bg-blue-100 text-blue-800", icon: "·" },
+  contacted: { label: "Contacted", color: "bg-yellow-100 text-yellow-800", icon: "·" },
+  qualified: { label: "Qualified", color: "bg-purple-100 text-purple-800", icon: "·" },
+  closed: { label: "Closed", color: "bg-green-100 text-green-800", icon: "·" },
+  lost: { label: "Lost", color: "bg-red-100 text-red-800", icon: "·" },
 } as const;
 
 const PRIORITY_CONFIG = {
@@ -32,11 +34,12 @@ const SOURCE_CONFIG = {
 } as const;
 
 // Mobile Lead Card Component
-function MobileLeadCard({ lead, onEdit, onDelete, onStatusChange }: {
+function MobileLeadCard({ lead, onEdit, onDelete, onStatusChange, formatCurrencyPrice }: {
   lead: Lead;
   onEdit: () => void;
   onDelete: () => void;
   onStatusChange: (status: LeadStatus) => void;
+  formatCurrencyPrice: (price: number) => string;
 }) {
   const [showActions, setShowActions] = useState(false);
 
@@ -51,7 +54,7 @@ function MobileLeadCard({ lead, onEdit, onDelete, onStatusChange }: {
             </div>
             <div>
               <h3 className="font-semibold text-[#1d1d1f] text-sm">{lead.customer_name}</h3>
-              <p className="text-xs text-[#6e6e73]">📱 {lead.whatsapp}</p>
+              <p className="text-xs text-[#6e6e73]">📱 {lead.phone}</p>
             </div>
           </div>
         </div>
@@ -77,7 +80,7 @@ function MobileLeadCard({ lead, onEdit, onDelete, onStatusChange }: {
           {lead.total_amount && (
             <div className="text-right">
               <p className="text-xs text-[#6e6e73] mb-1">Value</p>
-              <p className="font-bold text-[#0071e3] text-lg">{formatPrice(lead.total_amount)}</p>
+              <p className="font-bold text-[#0071e3] text-lg">{formatCurrencyPrice(lead.total_amount)}</p>
             </div>
           )}
         </div>
@@ -149,10 +152,10 @@ function MobileLeadCard({ lead, onEdit, onDelete, onStatusChange }: {
 function StatCard({ label, value, icon, colorClass }: { label: string; value: string | number; icon: string; colorClass: string }) {
   const getIcon = (label: string) => {
     switch(label.toLowerCase()) {
-      case 'всего заявок': return '📊';
-      case 'новые заявки': return '🆕';
-      case 'высокий приоритет': return '🔥';
-      case 'общая стоимость': return '💰';
+      case 'total leads': return '📊';
+      case 'new leads': return '🆕';
+      case 'high priority': return '🔥';
+      case 'total value': return '💰';
       default: return '📈';
     }
   };
@@ -171,10 +174,11 @@ function StatCard({ label, value, icon, colorClass }: { label: string; value: st
 }
 
 // Lead Modal Component
-function LeadModal({ lead, onUpdate, onClose }: {
+function LeadModal({ lead, onUpdate, onClose, formatCurrencyPrice }: {
   lead: Lead;
   onUpdate: (id: string, updates: Partial<Lead>) => Promise<void>;
   onClose: () => void;
+  formatCurrencyPrice: (price: number) => string;
 }) {
   const [notes, setNotes] = useState(lead.notes || "");
   const [status, setStatus] = useState<LeadStatus>(lead.status);
@@ -193,7 +197,7 @@ function LeadModal({ lead, onUpdate, onClose }: {
       <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-2xl max-h-[90vh] flex flex-col fade-in-scale">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#f5f5f7] shrink-0">
-          <h2 className="text-base font-bold text-[#1d1d1f]">Детали Лидa</h2>
+          <h2 className="text-base font-bold text-[#1d1d1f]">Lead Details</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f5f5f7] text-[#6e6e73] text-lg">×</button>
         </div>
 
@@ -201,19 +205,19 @@ function LeadModal({ lead, onUpdate, onClose }: {
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {/* Customer Info */}
           <div className="bg-[#f5f5f7] rounded-2xl p-4">
-            <h3 className="font-semibold text-[#1d1d1f] mb-3 text-sm">Информация о клиенте</h3>
+            <h3 className="font-semibold text-[#1d1d1f] mb-3 text-sm">Customer Information</h3>
             <div className="space-y-2 text-sm">
-              <div><span className="text-[#6e6e73]">Имя:</span> <span className="font-medium">{lead.customer_name}</span></div>
-              <div><span className="text-[#6e6e73]">WhatsApp:</span> <span className="font-medium">{lead.whatsapp}</span></div>
+              <div><span className="text-[#6e6e73]">Name:</span> <span className="font-medium">{lead.customer_name}</span></div>
+              <div><span className="text-[#6e6e73]">Phone:</span> <span className="font-medium">{lead.phone}</span></div>
               {lead.address && (
                 <div>
-                  <span className="text-[#6e6e73]">Адрес:</span> 
+                  <span className="text-[#6e6e73]">Address:</span> 
                   <span className="font-medium">{lead.address}</span>
                 </div>
               )}
               {lead.email && (
                 <div>
-                  <span className="text-[#6e6e73]">Почта:</span> 
+                  <span className="text-[#6e6e73]">Email:</span> 
                   <span className="font-medium">{lead.email}</span>
                 </div>
               )}
@@ -222,14 +226,14 @@ function LeadModal({ lead, onUpdate, onClose }: {
 
           {/* Product Info */}
           <div className="bg-[#f5f5f7] rounded-2xl p-4">
-            <h3 className="font-semibold text-[#1d1d1f] mb-3 text-sm">Интересующий продукт</h3>
+            <h3 className="font-semibold text-[#1d1d1f] mb-3 text-sm">Product of Interest</h3>
             <div className="space-y-2 text-sm">
-              <div><span className="text-[#6e6e73]">Продукт:</span> <span className="font-medium">{lead.product_name}</span></div>
-              <div><span className="text-[#6e6e73]">Категория:</span> <span className="font-medium">{lead.category}</span></div>
+              <div><span className="text-[#6e6e73]">Product:</span> <span className="font-medium">{lead.product_name}</span></div>
+              <div><span className="text-[#6e6e73]">Category:</span> <span className="font-medium">{lead.category}</span></div>
               {lead.total_amount && (
                 <div>
-                  <span className="text-[#6e6e73]">Стоимость:</span> 
-                  <span className="font-bold text-[#0071e3]">{formatPrice(lead.total_amount)}</span>
+                  <span className="text-[#6e6e73]">Value:</span> 
+                  <span className="font-bold text-[#0071e3]">{formatCurrencyPrice(lead.total_amount)}</span>
                 </div>
               )}
             </div>
@@ -238,7 +242,7 @@ function LeadModal({ lead, onUpdate, onClose }: {
           {/* Editable Fields */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Статус</label>
+              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as LeadStatus)}
@@ -251,7 +255,7 @@ function LeadModal({ lead, onUpdate, onClose }: {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Приоритет</label>
+              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Priority</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
@@ -264,11 +268,11 @@ function LeadModal({ lead, onUpdate, onClose }: {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Примечания</label>
+              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Notes</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Добавьте примечания об этом лидe..."
+                placeholder="Add notes about this lead..."
                 className="w-full px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[100px] resize-none"
               />
             </div>
@@ -277,7 +281,7 @@ function LeadModal({ lead, onUpdate, onClose }: {
           {/* Message */}
           {lead.message && (
             <div>
-              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Оригинальное сообщение</label>
+              <label className="block text-xs font-semibold text-[#1d1d1f] mb-2">Original Message</label>
               <div className="bg-[#f5f5f7] rounded-xl p-3 text-sm text-[#6e6e73] whitespace-pre-wrap">{lead.message}</div>
             </div>
           )}
@@ -285,8 +289,8 @@ function LeadModal({ lead, onUpdate, onClose }: {
 
         {/* Footer */}
         <div className="flex gap-3 px-6 py-4 border-t border-[#f5f5f7] shrink-0">
-          <button 
-            onClick={() => window.open(`https://wa.me/${lead.whatsapp.replace(/[^\d]/g, '')}`, "_blank")}
+          <button
+            onClick={() => window.open(`https://wa.me/${lead.phone.replace(/[^\d]/g, '')}`, "_blank")}
             className="flex-1 py-2.5 bg-[#25d366] text-white rounded-full text-sm font-semibold hover:bg-[#1da851] flex items-center justify-center gap-2"
           >
             WhatsApp
@@ -294,7 +298,7 @@ function LeadModal({ lead, onUpdate, onClose }: {
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-2.5 bg-[#0071e3] text-white rounded-full text-sm font-semibold hover:bg-[#0064cc] disabled:opacity-50"
           >
-            {saving ? "Сохранение..." : "Сохранить изменения"}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
@@ -305,6 +309,7 @@ function LeadModal({ lead, onUpdate, onClose }: {
 export default function LeadsDashboard() {
   const router = useRouter();
   const { refreshProducts } = useStore();
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
   
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -398,7 +403,7 @@ export default function LeadsDashboard() {
         lead.id === id ? { ...lead, ...updates, updated_at: new Date().toISOString() } : lead
       ));
       
-      showNotification("Заявка обновлена успешно");
+      showNotification("Lead updated successfully");
     } catch (error) {
       console.error("Error updating lead:", error);
       showNotification("Failed to update lead");
@@ -425,7 +430,7 @@ export default function LeadsDashboard() {
       if (error) throw error;
       
       setLeads(prev => prev.filter(lead => lead.id !== id));
-      showNotification("Заявка удалена успешно");
+      showNotification("Lead deleted successfully");
     } catch (error) {
       console.error("Error deleting lead:", error);
       showNotification("Failed to delete lead");
@@ -436,7 +441,7 @@ export default function LeadsDashboard() {
     const matchSearch = !searchQ || 
       lead.customer_name.toLowerCase().includes(searchQ.toLowerCase()) ||
       lead.product_name.toLowerCase().includes(searchQ.toLowerCase()) ||
-      lead.whatsapp.includes(searchQ);
+      lead.phone.includes(searchQ);
     const matchStatus = statusFilter === "all" || lead.status === statusFilter;
     const matchPriority = priorityFilter === "all" || lead.priority === priorityFilter;
     const matchSource = sourceFilter === "all" || lead.source === sourceFilter;
@@ -512,13 +517,13 @@ export default function LeadsDashboard() {
                       onClick={() => { fetchLeads(); setShowMobileMenu(false); }}
                       className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
                     >
-                      Обновить
+                      Refresh
                     </button>
                     <button 
                       onClick={() => { localStorage.removeItem("adminAuth"); router.replace("/admin"); setShowMobileMenu(false); }}
                       className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#ff3b30] hover:bg-red-50 rounded-lg transition-colors"
                     >
-                      Выйти
+                      Logout
                     </button>
                   </div>
                 </div>
@@ -545,10 +550,10 @@ export default function LeadsDashboard() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <StatCard label="Всего заявок" value={leads.length} icon="LEADS" colorClass="bg-blue-50" />
-          <StatCard label="Новые заявки" value={newLeads} icon="NEW" colorClass="bg-green-50" />
-          <StatCard label="Высокий приоритет" value={highPriority} icon="HIGH" colorClass="bg-red-50" />
-          <StatCard label="Общая стоимость" value={`${(totalValue / 1000).toFixed(0)}K`} icon="VALUE" colorClass="bg-yellow-50" />
+          <StatCard label="Total Leads" value={leads.length} icon="LEADS" colorClass="bg-blue-50" />
+          <StatCard label="New Leads" value={newLeads} icon="NEW" colorClass="bg-green-50" />
+          <StatCard label="High Priority" value={highPriority} icon="HIGH" colorClass="bg-red-50" />
+          <StatCard label="Total Value" value={`${(totalValue / 1000).toFixed(0)}K`} icon="VALUE" colorClass="bg-yellow-50" />
         </div>
 
         {/* Filters */}
@@ -560,14 +565,14 @@ export default function LeadsDashboard() {
                 type="text" 
                 value={searchQ} 
                 onChange={(e) => setSearchQ(e.target.value)}
-                placeholder="Поиск" 
+                placeholder="Search" 
                 className="flex-1 px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]" 
               />
               <button 
                 onClick={() => setShowFilters(!showFilters)}
                 className="px-3 py-2 bg-[#0071e3] text-white rounded-xl text-sm font-medium min-h-[44px] whitespace-nowrap"
               >
-                Фильтры
+                Filters
               </button>
             </div>
             {showFilters && (
@@ -659,7 +664,7 @@ export default function LeadsDashboard() {
                 onClick={() => setSelectedLead({
                   id: '',
                   customer_name: '',
-                  whatsapp: '',
+                  phone: '',
                   email: '',
                   address: '',
                   product_name: '',
@@ -715,7 +720,7 @@ export default function LeadsDashboard() {
                         <td className="px-4 py-3">
                           <div>
                             <p className="font-semibold text-[#1d1d1f] text-sm">{lead.customer_name}</p>
-                            <p className="text-[10px] text-[#6e6e73]">{lead.whatsapp}</p>
+                            <p className="text-[10px] text-[#6e6e73]">{lead.phone}</p>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -726,7 +731,7 @@ export default function LeadsDashboard() {
                         </td>
                         <td className="px-4 py-3">
                           {lead.total_amount ? (
-                            <p className="font-bold text-[#1d1d1f] text-sm">{formatPrice(lead.total_amount)}</p>
+                            <p className="font-bold text-[#1d1d1f] text-sm">{formatCurrencyPrice(lead.total_amount)}</p>
                           ) : (
                             <p className="text-[10px] text-[#6e6e73]">-</p>
                           )}
@@ -787,6 +792,7 @@ export default function LeadsDashboard() {
                     onEdit={() => setSelectedLead(lead)}
                     onDelete={() => deleteLead(lead.id)}
                     onStatusChange={(status) => updateLead(lead.id, { status })}
+                    formatCurrencyPrice={formatCurrencyPrice}
                   />
                 ))}
               </div>
@@ -800,6 +806,7 @@ export default function LeadsDashboard() {
             lead={selectedLead}
             onClose={() => setSelectedLead(null)}
             onUpdate={updateLead}
+            formatCurrencyPrice={formatCurrencyPrice}
           />
         )}
       </div>

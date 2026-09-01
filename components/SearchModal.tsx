@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { formatPrice } from "@/data/products";
 
 export default function SearchModal() {
   const { isSearchOpen, setIsSearchOpen, searchQuery, setSearchQuery, searchResults, addRecentlyViewed, products } = useStore();
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Search filters state
@@ -227,9 +229,9 @@ export default function SearchModal() {
                         <p className="font-semibold text-[#1d1d1f] text-sm truncate">{p.name}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-bold text-[#1d1d1f] text-sm">{formatPrice(p.price_kgs)}</p>
+                        <p className="font-bold text-[#1d1d1f] text-sm">{formatCurrencyPrice(p.price_kgs)}</p>
                         <p className={`text-xs ${p.stock_status ? "text-[#34c759]" : "text-[#ff3b30]"}`}>
-                          {p.stock_status ? "В наличии" : "Нет"}
+                          {p.stock_status ? "In Stock" : "Out"}
                         </p>
                       </div>
                     </Link>
@@ -242,7 +244,7 @@ export default function SearchModal() {
 
         {!searchQuery && (
           <div className="max-w-[760px] mx-auto px-4 sm:px-6 pb-6">
-            <p className="text-xs text-[#6e6e73] font-semibold mb-3 uppercase tracking-widest">Популярные</p>
+            <p className="text-xs text-[#6e6e73] font-semibold mb-3 uppercase tracking-widest">Popular</p>
             <div className="flex flex-wrap gap-2">
               {["MacBook Pro", "iPhone 15", "AirPods Pro", "Samsung S24", "Apple Watch"].map((t) => (
                 <button key={t} onClick={() => setSearchQuery(t)}

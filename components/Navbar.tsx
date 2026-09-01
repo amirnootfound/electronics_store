@@ -3,6 +3,7 @@
 // NAVBAR — Mobile-first Apple-style
 // Mobile: [Burger] [Logo] [Search+Cart]
 // Desktop: [Logo] [Nav Links] [Search+Wishlist+Cart]
+// Universal Electronics Store - Dynamic Categories
 // ============================================================
 
 import { useState, useEffect } from "react";
@@ -43,12 +44,12 @@ const CloseIcon = () => (
 );
 
 const desktopLinks = [
-  { label: "MacBook", cat: "MacBook" },
-  { label: "iPhone", cat: "iPhone" },
-  { label: "iPad", cat: "iPad" },
-  { label: "Watch", cat: "Apple Watch" },
-  { label: "AirPods", cat: "AirPods" },
-  { label: "Все", cat: "all" },
+  { label: "Laptops", cat: "Laptops" },
+  { label: "Smartphones", cat: "Smartphones" },
+  { label: "Tablets", cat: "Tablets" },
+  { label: "Audio", cat: "Audio" },
+  { label: "Accessories", cat: "Accessories" },
+  { label: "All", cat: "all" },
 ];
 
 export default function Navbar() {
@@ -57,6 +58,7 @@ export default function Navbar() {
     setIsSearchOpen, setIsCartOpen,
     isMobileMenuOpen, setIsMobileMenuOpen,
     setActiveCategory, activeCategory,
+    categories,
   } = useStore();
 
   const [scrolled, setScrolled] = useState(false);
@@ -66,6 +68,15 @@ export default function Navbar() {
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
+
+  // Use dynamic categories if available, otherwise fallback to static
+  const dynamicCategories = categories.length > 0 
+    ? categories.map(cat => ({ label: cat.name, cat: cat.name, emoji: cat.emoji || "📦" }))
+    : categoryNavItems.map(item => ({ label: item.label, cat: item.value, emoji: item.emoji }));
+
+  const desktopDynamicLinks = categories.length > 0
+    ? categories.map(cat => ({ label: cat.name, cat: cat.name }))
+    : desktopLinks;
 
   const handleCategoryClick = (cat: string) => {
     setActiveCategory(cat as never);
@@ -94,12 +105,12 @@ export default function Navbar() {
             className="flex items-center gap-2 font-bold text-[#1d1d1f] text-lg absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0"
           >
             <span className="text-2xl">⌘</span>
-            <span className="hidden sm:block tracking-tight text-[15px]">TechStore KG</span>
+            <span className="hidden sm:block tracking-tight text-[15px]">TechStore</span>
           </Link>
 
           {/* ── Desktop nav links ── */}
           <nav className="hidden lg:flex items-center gap-0.5 mx-auto">
-            {desktopLinks.map((l) => (
+            {desktopDynamicLinks.map((l) => (
               <Link
                 key={l.cat}
                 href={l.cat === "all" ? "/" : `/?category=${l.cat}`}
@@ -161,15 +172,15 @@ export default function Navbar() {
           <div className="lg:hidden border-t border-[#f0f0f5] bg-white/98 backdrop-blur-xl fade-in">
             <div className="max-w-[1440px] mx-auto px-4 py-3">
               <p className="text-[10px] text-[#6e6e73] font-bold uppercase tracking-widest px-3 mb-2">
-                Категории
+                Categories
               </p>
               <nav className="grid grid-cols-2 gap-1">
-                {categoryNavItems.map((item) => (
+                {dynamicCategories.map((item) => (
                   <button
-                    key={item.value}
-                    onClick={() => handleCategoryClick(item.value)}
+                    key={item.cat}
+                    onClick={() => handleCategoryClick(item.cat)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left font-medium text-sm transition-colors ${
-                      activeCategory === item.value
+                      activeCategory === item.cat
                         ? "bg-[#0071e3] text-white"
                         : "hover:bg-[#f5f5f7] text-[#1d1d1f]"
                     }`}
@@ -186,7 +197,7 @@ export default function Navbar() {
                 className="flex items-center gap-3 px-4 py-3 mt-1 rounded-xl hover:bg-[#f5f5f7] text-sm font-medium text-[#1d1d1f]"
               >
                 <span className="text-lg">❤️</span>
-                Избранное
+                Wishlist
                 {wishlistIds.length > 0 && (
                   <span className="ml-auto bg-[#ff3b30] text-white text-xs font-bold rounded-full px-2 py-0.5">
                     {wishlistIds.length}

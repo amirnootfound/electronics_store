@@ -60,7 +60,7 @@ export default function HomePage() {
             {/* Text */}
             <div className="flex-1 max-w-xl z-10 text-center lg:text-left">
               <p className="inline-block text-[#0071e3] text-xs sm:text-sm font-semibold uppercase tracking-widest mb-4 bg-blue-500/10 px-3 py-1 rounded-full">
-                Новинка 2024
+                New 2024
               </p>
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-none tracking-tight text-white mb-3">
                 MacBook Pro.
@@ -69,18 +69,18 @@ export default function HomePage() {
                 Mind-blowingly fast.
               </p>
               <p className="text-sm sm:text-base text-white/50 mb-6 sm:mb-8">
-                M3 Pro · 22 часа батарея · Liquid Retina XDR
+                M3 Pro · 22 hours battery · Liquid Retina XDR
               </p>
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                 <button
                   onClick={() => setActiveCategory("MacBook")}
                   className="px-6 py-3 bg-[#0071e3] text-white rounded-full font-semibold text-sm hover:bg-[#0064cc] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/30"
                 >
-                  Смотреть MacBook →
+                  See more MacBook →
                 </button>
                 <Link href="#catalog-section"
                   className="px-6 py-3 border border-white/25 text-white/80 rounded-full font-semibold text-sm hover:bg-white/10 transition-all hover:scale-105">
-                  Весь каталог
+                  See all products →
                 </Link>
               </div>
             </div>
@@ -116,8 +116,8 @@ export default function HomePage() {
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-1">Подборка</p>
-                <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f]">Новинки и популярные</h2>
+                <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-1">New & Popular</p>
+                <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f]">New & Popular</h2>
               </div>
             </div>
             {loading ? (
@@ -141,7 +141,7 @@ export default function HomePage() {
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-1">🔥 Хиты продаж</p>
+                <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-1">🔥 Trending Now</p>
                 <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f]">Trending Now</h2>
               </div>
               <div className="hidden sm:flex gap-2">
@@ -224,7 +224,7 @@ export default function HomePage() {
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-[#0071e3] text-white rounded-full font-semibold text-sm hover:bg-[#0064cc] transition-colors flex items-center gap-2"
                     >
-                      📍 Маршрут в Google Maps
+                      📍 Route in Google Maps
                     </a>
                     <a
                       href="https://wa.me/996700123456"
@@ -247,12 +247,12 @@ export default function HomePage() {
         <section id="catalog-section" className="max-w-[1440px] mx-auto px-4 sm:px-6 pb-20 pt-10 sm:pt-14">
           {/* Header */}
           <div className="text-center mb-8 sm:mb-10">
-            <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-2">Весь ассортимент</p>
+            <p className="text-[10px] sm:text-xs text-[#6e6e73] font-bold uppercase tracking-widest mb-2">Full catalog</p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#1d1d1f] leading-tight">
-              Выберите устройство
+              Choose your device
             </h2>
             <p className="text-[#6e6e73] mt-2 text-sm sm:text-base">
-              Официальная гарантия · Быстрая доставка по Кыргызстану
+              Official warranty · Fast delivery across Kyrgyzstan
             </p>
           </div>
 
