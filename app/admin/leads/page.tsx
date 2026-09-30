@@ -582,7 +582,7 @@ export default function LeadsDashboard() {
                   onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "all")}
                   className="w-full px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]"
                 >
-                  <option value="all">Все статусы</option>
+                  <option value="all">All Statuses</option>
                   {Object.entries(LEAD_STATUS_CONFIG).map(([key, config]) => (
                     <option key={key} value={key}>{config.label}</option>
                   ))}
@@ -592,7 +592,7 @@ export default function LeadsDashboard() {
                   onChange={(e) => setPriorityFilter(e.target.value as "low" | "medium" | "high" | "all")}
                   className="w-full px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]"
                 >
-                  <option value="all">Все приоритеты</option>
+                  <option value="all">All Priorities</option>
                   {Object.entries(PRIORITY_CONFIG).map(([key, config]) => (
                     <option key={key} value={key}>{config.label}</option>
                   ))}
@@ -602,7 +602,7 @@ export default function LeadsDashboard() {
                   onChange={(e) => setSourceFilter(e.target.value as "checkout" | "product_page" | "homepage" | "all")}
                   className="w-full px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3] min-h-[44px]"
                 >
-                  <option value="all">Все источники</option>
+                  <option value="all">All Sources</option>
                   {Object.entries(SOURCE_CONFIG).map(([key, config]) => (
                     <option key={key} value={key}>{config.label}</option>
                   ))}
@@ -617,7 +617,7 @@ export default function LeadsDashboard() {
               type="text" 
               value={searchQ} 
               onChange={(e) => setSearchQ(e.target.value)}
-              placeholder="Поиск" 
+              placeholder="Search" 
               className="flex-1 min-w-[200px] px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]" 
             />
             <select 
@@ -625,7 +625,7 @@ export default function LeadsDashboard() {
               onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "all")}
               className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
             >
-              <option value="all">Все статусы</option>
+              <option value="all">All Statuses</option>
               {Object.entries(LEAD_STATUS_CONFIG).map(([key, config]) => (
                 <option key={key} value={key}>{config.label}</option>
               ))}
@@ -635,7 +635,7 @@ export default function LeadsDashboard() {
               onChange={(e) => setPriorityFilter(e.target.value as "low" | "medium" | "high" | "all")}
               className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
             >
-              <option value="all">Все приоритеты</option>
+              <option value="all">All Priorities</option>
               {Object.entries(PRIORITY_CONFIG).map(([key, config]) => (
                 <option key={key} value={key}>{config.label}</option>
               ))}
@@ -645,7 +645,7 @@ export default function LeadsDashboard() {
               onChange={(e) => setSourceFilter(e.target.value as "checkout" | "product_page" | "homepage" | "all")}
               className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
             >
-              <option value="all">Все источники</option>
+              <option value="all">All Sources</option>
               {Object.entries(SOURCE_CONFIG).map(([key, config]) => (
                 <option key={key} value={key}>{config.label}</option>
               ))}
@@ -657,7 +657,7 @@ export default function LeadsDashboard() {
         <div className="bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden">
           <div className="p-5 border-b border-[#f5f5f7] flex items-center justify-between">
             <h2 className="text-base font-bold text-[#1d1d1f]">
-              Список лидов ({filtered.length} из {leads.length})
+              Leads List ({filtered.length} of {leads.length})
             </h2>
             {leads.length === 0 && (
               <button
@@ -681,7 +681,7 @@ export default function LeadsDashboard() {
                 })}
                 className="px-3 py-1.5 bg-[#0071e3] text-white rounded-full text-xs font-medium hover:bg-[#0064cc] min-h-[36px] sm:min-h-[40px] whitespace-nowrap"
               >
-                + Добавить лид
+                + Add Lead
               </button>
             )}
           </div>
@@ -689,13 +689,13 @@ export default function LeadsDashboard() {
           {loading ? (
             <div className="p-8 text-center text-[#6e6e73]">
               <div className="text-3xl mb-2 animate-spin inline-block">⏳</div>
-              <p className="text-sm">Загрузка...</p>
+              <p className="text-sm">Loading...</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-14 text-[#6e6e73]">
-              <div className="text-4xl mb-2">Пусто</div>
-              <p className="font-medium text-sm">Нет заявок</p>
-              <p className="text-xs mt-1">Попробуйте изменить фильтры</p>
+              <div className="text-4xl mb-2">Empty</div>
+              <p className="font-medium text-sm">No leads found</p>
+              <p className="text-xs mt-1">Try changing filters</p>
             </div>
           ) : (
             <>
@@ -704,14 +704,14 @@ export default function LeadsDashboard() {
                 <table className="w-full min-w-[700px]">
                   <thead>
                     <tr className="border-b border-[#f5f5f7] bg-[#fafafa]">
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Клиент</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Продукт</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Стоимость</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Источник</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Статус</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Приоритет</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Дата</th>
-                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Действия</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Customer</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Product</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Value</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Source</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Status</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Priority</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Date</th>
+                      <th className="text-left text-[10px] font-bold text-[#6e6e73] uppercase tracking-wider px-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#f5f5f7]">
@@ -767,13 +767,13 @@ export default function LeadsDashboard() {
                               onClick={() => setSelectedLead(lead)}
                               className="px-2 py-1 text-[10px] font-medium border border-[#d2d2d7] text-[#1d1d1f] rounded-full hover:border-[#0071e3] hover:text-[#0071e3]"
                             >
-                              Редактировать
+                              Edit
                             </button>
                             <button 
                               onClick={() => deleteLead(lead.id)}
                               className="px-2 py-1 text-[10px] font-medium text-[#ff3b30] hover:bg-red-50 rounded-full"
                             >
-                              Удалить
+                              Delete
                             </button>
                           </div>
                         </td>

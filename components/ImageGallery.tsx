@@ -57,7 +57,7 @@ export default function ImageGallery({ images, name }: ImageGalleryProps) {
     <div className="flex flex-col gap-3">
       {/* Main image */}
       <div
-        className="relative bg-[#f5f5f7] rounded-2xl sm:rounded-3xl overflow-hidden cursor-zoom-in"
+        className="relative bg-[#f5f5f7] rounded-2xl sm:rounded-3xl overflow-hidden cursor-zoom-in group"
         style={{ aspectRatio: "1 / 1" }}
         onClick={() => setZoomed(true)}
         onTouchStart={handleTouchStart}
@@ -74,7 +74,7 @@ export default function ImageGallery({ images, name }: ImageGalleryProps) {
         />
         {/* Zoom hint */}
         <div className="absolute bottom-3 right-3 bg-black/30 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          🔍 Нажмите для увеличения
+          🔍 Click to zoom
         </div>
         {/* Arrows if multiple */}
         {all.length > 1 && (
@@ -151,7 +151,7 @@ export default function ImageGallery({ images, name }: ImageGalleryProps) {
           </div>
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
-            {selected + 1} / {all.length} — нажмите Esc или за пределами
+            {selected + 1} / {all.length} — press Esc or click outside
           </div>
         </div>
       )}

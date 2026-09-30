@@ -140,15 +140,14 @@ export default function ProductCard({ product, viewMode = "grid" }: ProductCardP
 
       {/* Image */}
       <Link href={`/product/${product.id}`} onClick={() => addRecentlyViewed(product)}
-        className="block bg-white overflow-hidden group/img" // Поменял фон на белый, так чище для разных фото
+        className="block bg-white overflow-hidden group/img"
       >
-        <div className="relative aspect-square"> {/* Сделал квадрат 1:1 */}
+        <div className="relative aspect-square">
           <Image src={product.image} alt={product.name} fill
             sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-700 group-hover/img:scale-110" // Теперь во весь экран
+            className="object-cover transition-transform duration-700 group-hover/img:scale-110"
             unoptimized
           />
-          {/* Мягкий оверлей, чтобы сгладить переходы, если нужно */}
           <div className="absolute inset-0 bg-black/[0.02] pointer-events-none" />
         </div>
       </Link>

@@ -84,7 +84,7 @@ export default function SearchModal() {
               <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
             </svg>
             <input ref={inputRef} type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Поиск — MacBook, iPhone, AirPods..."
+              placeholder="Search — MacBook, iPhone, AirPods..."
               className="flex-1 min-w-0 bg-transparent text-[#1d1d1f] text-sm sm:text-base placeholder-[#c7c7cc] outline-none"
             />
             {searchQuery && (
@@ -94,10 +94,10 @@ export default function SearchModal() {
             )}
             <div className="flex gap-1 sm:gap-2">
               <button onClick={() => setShowFilters(!showFilters)} className="text-[#0071e3] text-xs sm:text-sm font-medium p-1.5 sm:px-2.5 min-w-[60px] sm:min-w-[80px] whitespace-nowrap">
-                🎚️ Фильтры
+                🎚️ Filters
               </button>
               <button onClick={() => setIsSearchOpen(false)} className="text-[#0071e3] text-xs sm:text-sm font-medium p-1.5 sm:px-2.5 min-w-[50px] sm:min-w-[70px] whitespace-nowrap">
-                Отмена
+                Cancel
               </button>
             </div>
           </div>
@@ -107,75 +107,73 @@ export default function SearchModal() {
         {showFilters && (
           <div className="max-w-[700px] mx-auto px-4 sm:px-6 pb-4">
             <div className="bg-[#f8f9fa] rounded-xl p-3 sm:p-4 space-y-3 sm:space-y-4">
-              <h3 className="font-semibold text-[#1d1d1f] mb-2 sm:mb-3 text-sm sm:text-base">Фильтры поиска</h3>
+              <h3 className="font-semibold text-[#1d1d1f] mb-2 sm:mb-3 text-sm sm:text-base">Search Filters</h3>
               
               {/* Compact Filters Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Категория</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Category</label>
                   <select 
                     value={categoryFilter} 
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     className="w-full px-2 py-1.5 bg-white border border-[#e8e8ed] rounded-lg text-xs sm:text-sm outline-none focus:border-[#0071e3]"
                   >
-                    <option value="all">Все</option>
-                    <option value="MacBook">MacBook</option>
-                    <option value="iPhone">iPhone</option>
-                    <option value="iPad">iPad</option>
-                    <option value="Apple Watch">Watch</option>
-                    <option value="AirPods">AirPods</option>
-                    <option value="Accessories">Аксессуары</option>
-                    <option value="Samsung">Samsung</option>
-                    <option value="Headphones">Наушники</option>
-                    <option value="Monitors">Мониторы</option>
-                    <option value="Gaming">Игры</option>
+                    <option value="all">All</option>
+                    <option value="Laptops">Laptops</option>
+                    <option value="Smartphones">Smartphones</option>
+                    <option value="Tablets">Tablets</option>
+                    <option value="Audio">Audio</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Displays">Displays</option>
+                    <option value="TV & Home Theater">TV & Home Theater</option>
+                    <option value="Gaming">Gaming</option>
                   </select>
                 </div>
 
                 {/* Price Filter */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Цена</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Price</label>
                   <select 
                     value={priceFilter} 
                     onChange={(e) => setPriceFilter(e.target.value)}
                     className="w-full px-2 py-1.5 bg-white border border-[#e8e8ed] rounded-lg text-xs sm:text-sm outline-none focus:border-[#0071e3]"
                   >
-                    <option value="all">Все цены</option>
-                    <option value="0-20000">До 20К</option>
-                    <option value="20000-50000">20К-50К</option>
-                    <option value="50000-100000">50К-100К</option>
-                    <option value="100000-999999">100К+</option>
+                    <option value="all">All Prices</option>
+                    <option value="0-20000">Under 20K</option>
+                    <option value="20000-50000">20K-50K</option>
+                    <option value="50000-100000">50K-100K</option>
+                    <option value="100000-999999">100K+</option>
                   </select>
                 </div>
 
                 {/* Stock Filter */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Наличие</label>
+                  <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Availability</label>
                   <select 
                     value={stockFilter} 
                     onChange={(e) => setStockFilter(e.target.value)}
                     className="w-full px-2 py-1.5 bg-white border border-[#e8e8ed] rounded-lg text-xs sm:text-sm outline-none focus:border-[#0071e3]"
                   >
-                    <option value="all">Все</option>
-                    <option value="in-stock">В наличии</option>
-                    <option value="out-of-stock">Нет</option>
+                    <option value="all">All</option>
+                    <option value="in-stock">In Stock</option>
+                    <option value="out-of-stock">Out of Stock</option>
                   </select>
                 </div>
               </div>
 
               {/* Sort By - Full Width on Mobile */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Сортировка</label>
+                <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">Sort By</label>
                 <select 
                   value={sortBy} 
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full px-2 py-1.5 bg-white border border-[#e8e8ed] rounded-lg text-xs sm:text-sm outline-none focus:border-[#0071e3]"
                 >
-                  <option value="relevance">Релевантность</option>
-                  <option value="name">По имени</option>
-                  <option value="price-low">Цена ↑</option>
-                  <option value="price-high">Цена ↓</option>
+                  <option value="relevance">Relevance</option>
+                  <option value="name">Name</option>
+                  <option value="price-low">Price ↑</option>
+                  <option value="price-high">Price ↓</option>
                 </select>
               </div>
 
@@ -190,7 +188,7 @@ export default function SearchModal() {
                   }}
                   className="w-full py-1.5 sm:py-2 bg-[#f5f5f7] text-[#1d1d1f] rounded-lg text-xs sm:text-sm font-medium hover:bg-[#e8e8ed]"
                 >
-                  Сбросить
+                  Reset
                 </button>
               </div>
             </div>
@@ -203,15 +201,15 @@ export default function SearchModal() {
             {filteredResults.length === 0 ? (
               <div className="text-center py-10 text-[#6e6e73]">
                 <p className="text-3xl mb-3">🔍</p>
-                <p className="font-medium">Ничего не найдено</p>
-                <p className="text-sm mt-1">Попробуйте другой запрос или измените фильтры</p>
+                <p className="font-medium">No results found</p>
+                <p className="text-sm mt-1">Try a different query or change filters</p>
               </div>
             ) : (
               <>
                 <p className="text-xs text-[#6e6e73] mb-3">
-                  Найдено {filteredResults.length} результатов
+                  Found {filteredResults.length} results
                   {(categoryFilter !== "all" || priceFilter !== "all" || stockFilter !== "all" || sortBy !== "relevance") && 
-                    ` (фильтры активны)`
+                    ` (filters active)`
                   }
                 </p>
                 <div className="flex flex-col gap-1">

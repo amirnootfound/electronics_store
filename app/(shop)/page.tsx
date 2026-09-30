@@ -16,15 +16,14 @@ import Navbar from "@/components/Navbar";
 
 // ── Category filter list ──────────────────────────────────
 const CATEGORY_TABS: { label: string; value: Category | "all" }[] = [
-  { label: "Все", value: "all" },
-  { label: "MacBook", value: "MacBook" },
-  { label: "iPhone", value: "iPhone" },
-  { label: "iPad", value: "iPad" },
-  { label: "Watch", value: "Apple Watch" },
-  { label: "AirPods", value: "AirPods" },
-  { label: "Samsung", value: "Samsung" },
-  { label: "Headphones", value: "Headphones" },
-  { label: "Monitors", value: "Monitors" },
+  { label: "All", value: "all" },
+  { label: "Laptops", value: "Laptops" },
+  { label: "Smartphones", value: "Smartphones" },
+  { label: "Tablets", value: "Tablets" },
+  { label: "Audio", value: "Audio" },
+  { label: "Accessories", value: "Accessories" },
+  { label: "Displays", value: "Displays" },
+  { label: "TV & Home Theater", value: "TV & Home Theater" },
   { label: "Gaming", value: "Gaming" },
 ];
 
@@ -179,33 +178,33 @@ export default function HomePage() {
                 {/* Map embed */}
                 <div className="relative bg-[#e8e8ed] min-h-[220px]">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2924.8844!2d74.5975!3d42.8746!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x389eb6c4e1234567%3A0xabcdef1234567890!2z0KHQvtCy0LXRgtGB0LrQuNC5!5e0!3m2!1sru!2skg!4v1700000000000"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.9663095343008!2d-74.00669258459433!3d40.71277597933181!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a23e28c1191%3A0x49f75d3281df052a!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1700000000000"
                     className="w-full h-full absolute inset-0 border-0 min-h-[220px]"
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="TechStore KG на карте"
+                    title="TechStore on map"
                   />
                 </div>
 
                 {/* Info */}
                 <div className="p-8 sm:p-10 flex flex-col justify-center">
                   <p className="text-[10px] sm:text-xs text-[#0071e3] font-bold uppercase tracking-widest mb-3">
-                    📍 Наш магазин
+                    📍 Our Store
                   </p>
                   <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f] mb-2 leading-tight">
-                    Посетите нас<br className="hidden sm:block" /> в Бишкеке
+                    Visit Us<br className="hidden sm:block" /> in New York City
                   </h2>
                   <p className="text-[#6e6e73] text-sm sm:text-base mb-6 leading-relaxed">
-                    Официальный дилер Apple и партнёр Samsung в Кыргызстане. Живая демонстрация, сервисный центр и консультация специалиста.
+                    Official Apple dealer and Samsung partner in U.S. Live demonstration, service center and expert consultation.
                   </p>
 
                   <div className="space-y-3 mb-7">
                     {[
-                      { icon: "📍", label: "Адрес", value: "г. Бишкек, пр. Чуй 123, ТЦ Бишкек Парк, 2 этаж" },
-                      { icon: "🕐", label: "Режим работы", value: "Пн–Вс: 10:00 – 21:00" },
-                      { icon: "📞", label: "Телефон", value: "+996 700 123 456" },
-                      { icon: "💬", label: "WhatsApp", value: "+996 700 123 456" },
+                      { icon: "📍", label: "Address", value: "123 Main Street, New York, NY 10001" },
+                      { icon: "🕐", label: "Hours", value: "Mon–Sun: 9:00 – 21:00" },
+                      { icon: "📞", label: "Phone", value: "+1 (312) 399-7464" },
+                      { icon: "💬", label: "WhatsApp", value: "+1 (312) 399-7464" },
                     ].map((item) => (
                       <div key={item.label} className="flex items-start gap-3">
                         <span className="text-base mt-0.5">{item.icon}</span>
@@ -219,7 +218,7 @@ export default function HomePage() {
 
                   <div className="flex flex-wrap gap-3">
                     <a
-                      href="https://maps.google.com/?q=Бишкек+пр.Чуй+123"
+                      href="https://maps.google.com/?q=123+Main+Street+New+York+NY"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-[#0071e3] text-white rounded-full font-semibold text-sm hover:bg-[#0064cc] transition-colors flex items-center gap-2"
@@ -227,7 +226,7 @@ export default function HomePage() {
                       📍 Route in Google Maps
                     </a>
                     <a
-                      href="https://wa.me/996700123456"
+                      href="https://wa.me/15551234567"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-[#25d366] text-white rounded-full font-semibold text-sm hover:bg-[#1da851] transition-colors flex items-center gap-2"
@@ -252,7 +251,7 @@ export default function HomePage() {
               Choose your device
             </h2>
             <p className="text-[#6e6e73] mt-2 text-sm sm:text-base">
-              Official warranty · Fast delivery across Kyrgyzstan
+              Official warranty · Fast delivery nationwide
             </p>
           </div>
 
@@ -274,7 +273,7 @@ export default function HomePage() {
           </div>
 
           {/* Count */}
-          <p className="text-xs sm:text-sm text-[#6e6e73] mb-4">{filtered.length} товаров</p>
+          <p className="text-xs sm:text-sm text-[#6e6e73] mb-4">{filtered.length} products</p>
 
           {/* Grid — 2 cols mobile, 3 tablet, 4 desktop */}
           {loading ? (
@@ -290,7 +289,7 @@ export default function HomePage() {
           ) : (
             <div className="text-center py-20 text-[#6e6e73]">
               <div className="text-5xl mb-4">📦</div>
-              <p className="text-xl font-semibold">Товары не найдены</p>
+              <p className="text-xl font-semibold">No products found</p>
             </div>
           )}
         </section>
@@ -301,7 +300,7 @@ export default function HomePage() {
         {recentlyViewed.length > 0 && (
           <section className="bg-[#f5f5f7] py-10 sm:py-14">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] mb-6">Недавно просмотренные</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] mb-6">Recently Viewed</h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 sm:gap-4">
                 {recentlyViewed.map((p) => (
                   <Link key={p.id} href={`/product/${p.id}`}
@@ -316,7 +315,7 @@ export default function HomePage() {
                       unoptimized
                     />
                     <p className="text-[10px] sm:text-xs font-semibold text-[#1d1d1f] line-clamp-2 leading-tight">{p.name}</p>
-                    <p className="text-[10px] text-[#0071e3] font-bold mt-0.5">{Math.round(p.price_kgs / 1000)}K сом</p>
+                    <p className="text-[10px] text-[#0071e3] font-bold mt-0.5">{Math.round(p.price_kgs / 1000)}K KGS</p>
                   </Link>
                 ))}
               </div>
@@ -328,10 +327,10 @@ export default function HomePage() {
         <section className="py-10 sm:py-14 max-w-[1440px] mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { icon: "🛡️", title: "Официальная гарантия", desc: "1 год на все устройства" },
-              { icon: "🚚", title: "Быстрая доставка", desc: "По Бишкеку — 1-2 дня" },
-              { icon: "💳", title: "Рассрочка 0%", desc: "До 12 месяцев" },
-              { icon: "🔄", title: "Возврат 14 дней", desc: "Без вопросов" },
+              { icon: "🛡️", title: "Official Warranty", desc: "1 year on all devices" },
+              { icon: "🚚", title: "Fast Delivery", desc: "Across Bishkek — 1-2 days" },
+              { icon: "💳", title: "0% Installment", desc: "Up to 12 months" },
+              { icon: "🔄", title: "14-Day Returns", desc: "No questions asked" },
             ].map((b) => (
               <div key={b.title} className="flex flex-col items-center gap-2">
                 <div className="text-3xl sm:text-4xl">{b.icon}</div>

@@ -28,20 +28,15 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
       const urls: string[] = [...images];
 
       for (let i = 0; i < fileArr.length; i++) {
-      // Полностью удали эти строки (isConfigured и т.д.)
-      // Сразу внутри цикла пиши:
-
       const file = fileArr[i];
       setUploading(true);
 
-      // ПРЯМОЙ ВЫЗОВ БЕЗ ПРОВЕРОК
       const url = await uploadProductImage(file);
 
       if (url) {
         urls.push(url);
       } else {
-      //  Если вернулся null, значит либо интернет, либо права в Supabase
-      alert("Бро, Supabase не отдал ссылку. Проверь консоль!");
+      alert("Supabase didn't return a URL. Check the console!");
       }
 
       setProgress((p) => p.map((v, idx) => (idx === i ? 100 : v)));
@@ -99,7 +94,7 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
         {uploading ? (
           <div className="space-y-3">
             <div className="text-2xl">⏳</div>
-            <p className="text-sm font-medium text-[#1d1d1f]">Загрузка изображений...</p>
+            <p className="text-sm font-medium text-[#1d1d1f]">Uploading images...</p>
             <div className="space-y-1.5">
               {progress.map((p, i) => (
                 <div key={i} className="h-1.5 bg-[#f5f5f7] rounded-full overflow-hidden">
@@ -115,9 +110,9 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
           <div>
             <div className="text-3xl mb-2">{dragOver ? "📂" : "🖼️"}</div>
             <p className="text-sm font-semibold text-[#1d1d1f]">
-              {dragOver ? "Отпустите файлы здесь" : "Перетащите изображения или нажмите"}
+              {dragOver ? "Drop files here" : "Drag images or click"}
             </p>
-            <p className="text-xs text-[#6e6e73] mt-1">PNG, JPG, WebP — до 10МБ каждый · Несколько файлов</p>
+            <p className="text-xs text-[#6e6e73] mt-1">PNG, JPG, WebP — up to 10MB each · Multiple files</p>
           </div>
         )}
       </div>
@@ -126,7 +121,7 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
       {images.length > 0 && (
         <div>
           <p className="text-xs text-[#6e6e73] font-medium mb-2">
-            Галерея ({images.length} фото) — первое изображение = главное
+            Gallery ({images.length} photos) — first image = main
           </p>
           <div className="flex flex-wrap gap-2">
             {images.map((url, idx) => (
@@ -142,7 +137,7 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
                 {/* Primary badge */}
                 {idx === 0 && (
                   <div className="absolute top-0.5 left-0.5 bg-[#0071e3] text-white text-[8px] font-bold px-1 py-0.5 rounded-full leading-none">
-                    Главное
+                    Main
                   </div>
                 )}
 
@@ -152,7 +147,7 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
                     <button
                       onClick={(e) => { e.stopPropagation(); handleSetPrimary(idx); }}
                       className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-[10px]"
-                      title="Сделать главным"
+                      title="Set as main"
                     >
                       ⭐
                     </button>
@@ -160,7 +155,7 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
                   <button
                     onClick={(e) => { e.stopPropagation(); handleRemove(url, idx); }}
                     className="w-6 h-6 bg-[#ff3b30] rounded-full flex items-center justify-center text-white text-xs"
-                    title="Удалить"
+                    title="Delete"
                   >
                     ×
                   </button>

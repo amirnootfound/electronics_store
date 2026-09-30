@@ -21,7 +21,7 @@ export interface CurrencyConfig {
 export const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
   USD: { code: "USD", symbol: "$", locale: "en-US", rate: 1 },
   EUR: { code: "EUR", symbol: "€", locale: "de-DE", rate: 0.92 },
-  KGS: { code: "KGS", symbol: "сом", locale: "ru-KG", rate: 89.5 },
+  KGS: { code: "KGS", symbol: "KGS", locale: "en-KG", rate: 89.5 },
   GBP: { code: "GBP", symbol: "£", locale: "en-GB", rate: 0.79 },
   CAD: { code: "CAD", symbol: "C$", locale: "en-CA", rate: 1.36 },
   AUD: { code: "AUD", symbol: "A$", locale: "en-AU", rate: 1.53 },
