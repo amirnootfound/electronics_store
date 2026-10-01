@@ -38,11 +38,70 @@ export interface CartItem {
 
 export interface CheckoutForm {
   name: string;
+  email: string;
+  phone: string;
   address: string;
-  phone: string;               // Changed from whatsapp to generic phone
-  email?: string;
-  paymentMethod: string;       // Dynamic payment method
-  orderPath: string;          // Order path (online, call, sms, pickup, delivery)
+  address2?: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  paymentMethod: string;
+  shippingMethod: string;
+}
+
+// Order types for checkout system
+export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
+
+export type ShippingMethod = "standard" | "express" | "overnight" | "pickup";
+
+export interface Order {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  email: string;
+  phone: string;
+  shipping_address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+  };
+  items: Array<{
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    price: number;
+  }>;
+  subtotal: number;
+  shipping_cost: number;
+  tax_amount: number;
+  total: number;
+  currency: string;
+  shipping_method: ShippingMethod;
+  payment_method: string;
+  payment_status: "pending" | "paid" | "failed" | "refunded";
+  stripe_payment_intent_id?: string;
+  status: OrderStatus;
+  tracking_number?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShippingRate {
+  method: ShippingMethod;
+  name: string;
+  price: number;
+  estimated_days: string;
+}
+
+export interface TaxRate {
+  state: string;
+  rate: number; // percentage
+  shipping_taxable: boolean;
 }
 
 // UI state for category nav
@@ -52,31 +111,7 @@ export interface CategoryNavItem {
   emoji: string;
 }
 
-export type LeadStatus = "new" | "contacted" | "qualified" | "closed" | "lost";
 
-export interface Lead {
-  id: string;
-  customer_name: string;
-  phone: string;               // Changed from whatsapp to generic phone
-  address?: string;
-  email?: string;
-  product_id?: string;
-  product_name: string;
-  category: string;
-  category_id?: string;        // UUID reference to categories table
-  message?: string;
-  total_amount?: number;
-  currency?: string;
-  payment_method_id?: string;   // UUID reference to payment_methods table
-  order_path_id?: string;      // UUID reference to order_paths table
-  source: "checkout" | "product_page" | "homepage";
-  status: LeadStatus;
-  priority: "low" | "medium" | "high";
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
-  contacted_at?: string;
-}
 
 // Database types for new tables
 export interface CategoryRecord {

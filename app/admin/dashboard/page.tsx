@@ -364,11 +364,17 @@ export default function AdminDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Partial<Product> | null>(null);
   const [searchQ, setSearchQ] = useState("");
-  const [activeTab, setActiveTab] = useState<"products" | "stats">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "stats" | "orders">("products");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [catFilter, setCatFilter] = useState<Category | "all">("all");
+  
+  // Orders state
+  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState("all");
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem("adminAuth") !== "true") {
@@ -380,6 +386,48 @@ export default function AdminDashboard() {
   useEffect(() => {
     refreshProducts();
   }, [refreshProducts]);
+
+  // Fetch orders when orders tab is active
+  useEffect(() => {
+    if (activeTab === "orders") {
+      fetchOrders();
+    }
+  }, [activeTab, orderStatusFilter]);
+
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (orderSearch) params.append('search', orderSearch);
+      if (orderStatusFilter !== 'all') params.append('status', orderStatusFilter);
+      
+      const response = await fetch(`/api/orders?${params.toString()}`);
+      const data = await response.json();
+      if (data.orders) {
+        setOrders(data.orders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: newStatus }),
+      });
+      if (response.ok) {
+        showNotification(`✅ Order status updated to ${newStatus}`);
+        fetchOrders();
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+    }
+  };
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -436,32 +484,26 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <div className="hidden sm:block">
-                <h1 className="font-bold text-[#1d1d1f] text-base leading-none">TechStore KG</h1>
+                <h1 className="font-bold text-[#1d1d1f] text-base leading-none">{process.env.NEXT_PUBLIC_STORE_NAME || 'TechStore'}</h1>
                 <p className="text-[10px] text-[#6e6e73]">Admin Panel</p>
               </div>
               <div className="sm:hidden">
-                <h1 className="font-bold text-[#1d1d1f] text-base">TechStore KG</h1>
+                <h1 className="font-bold text-[#1d1d1f] text-base">{process.env.NEXT_PUBLIC_STORE_NAME || 'TechStore'} </h1>
               </div>
             </div>
           </div>
           
           {/* Center Section - Tab Buttons */}
           <div className="hidden md:flex items-center gap-1">
-            {(["products", "stats"] as const).map((t) => (
+            {(["products", "orders", "stats"] as const).map((t) => (
               <button key={t} onClick={() => setActiveTab(t)}
                 className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                   activeTab === t ? "bg-[#1d1d1f] text-white" : "text-[#6e6e73] hover:text-[#1d1d1f]"
                 }`}
               >
-                {t === "products" ? "Products" : "Analytics"}
+                {t === "products" ? "Products" : t === "orders" ? "Orders" : "Analytics"}
               </button>
             ))}
-            <button 
-              onClick={() => router.push("/admin/leads")}
-              className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium text-[#0071e3] hover:text-[#0064cc] transition-colors"
-            >
-              Leads
-            </button>
           </div>
           
           {/* Right Section - Action Buttons */}
@@ -500,12 +542,6 @@ export default function AdminDashboard() {
                       Refresh
                     </button>
                     <button 
-                      onClick={() => { router.push("/admin/leads"); setShowMobileMenu(false); }}
-                      className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
-                    >
-                      Leads
-                    </button>
-                    <button 
                       onClick={() => { window.open("/", "_blank"); setShowMobileMenu(false); }}
                       className="w-full px-3 py-2.5 text-left text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] rounded-lg transition-colors"
                     >
@@ -533,13 +569,13 @@ export default function AdminDashboard() {
         <div className="md:hidden border-t border-[#f5f5f7] bg-white">
           <div className="max-w-[1600px] mx-auto px-2 py-2">
             <div className="flex gap-1 overflow-x-auto">
-              {(["products", "stats"] as const).map((t) => (
+              {(["products", "orders", "stats"] as const).map((t) => (
                 <button key={t} onClick={() => setActiveTab(t)}
                   className={`px-3 py-2 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                     activeTab === t ? "bg-[#1d1d1f] text-white" : "text-[#6e6e73] hover:text-[#1d1d1f]"
                   }`}
                 >
-                  {t === "products" ? "Products" : "Analytics"}
+                  {t === "products" ? "Products" : t === "orders" ? "Orders" : "Analytics"}
                 </button>
               ))}
             </div>
@@ -549,12 +585,139 @@ export default function AdminDashboard() {
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatCard label="Total Products" value={products.length} icon="📦" colorClass="bg-blue-50" />
           <StatCard label="In Stock" value={inStock} icon="✅" colorClass="bg-green-50" />
           <StatCard label="Out of Stock" value={products.length - inStock} icon="❌" colorClass="bg-red-50" />
           <StatCard label="Catalog Value" value={`${(totalValue / 1000).toFixed(0)}K`} icon="💰" colorClass="bg-yellow-50" />
+          <StatCard label="Total Orders" value={orders.length} icon="🛒" colorClass="bg-purple-50" />
+          <StatCard label="Revenue" value={`$${orders.reduce((sum, o) => sum + Number(o.total), 0).toFixed(0)}`} icon="💵" colorClass="bg-green-50" />
         </div>
+
+        {/* ── ORDERS TAB ── */}
+        {activeTab === "orders" && (
+          <div className="bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden fade-in">
+            {/* Orders toolbar */}
+            <div className="p-4 sm:p-5 border-b border-[#f5f5f7] space-y-3">
+              <h2 className="text-base sm:text-lg font-bold text-[#1d1d1f]">
+                Orders
+                <span className="ml-2 text-xs font-normal text-[#6e6e73]">({orders.length})</span>
+              </h2>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input 
+                  type="text" 
+                  value={orderSearch}
+                  onChange={(e) => { setOrderSearch(e.target.value); }}
+                  placeholder="Search orders..."
+                  className="flex-1 px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
+                />
+                <select 
+                  value={orderStatusFilter}
+                  onChange={(e) => { setOrderStatusFilter(e.target.value); }}
+                  className="px-3 py-2 bg-[#f5f5f7] rounded-xl text-sm outline-none focus:bg-white border border-transparent focus:border-[#0071e3]"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Orders list */}
+            {ordersLoading ? (
+              <div className="p-8 text-center text-[#6e6e73]">
+                <div className="text-3xl mb-2 animate-spin inline-block">⏳</div>
+                <p className="text-sm">Loading orders...</p>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-14 text-[#6e6e73]">
+                <div className="text-4xl mb-2">📭</div>
+                <p className="font-medium text-sm">No orders found</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#f5f5f7]">
+                {orders.map((order) => (
+                  <div key={order.id} className="p-4 sm:p-5 hover:bg-[#fafafa] transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                      <div>
+                        <p className="font-bold text-[#1d1d1f] text-sm">{order.order_number}</p>
+                        <p className="text-xs text-[#6e6e73]">{new Date(order.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          order.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                          order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
+                          order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {order.status}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {order.payment_status}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-[#6e6e73] text-xs">Customer</p>
+                        <p className="font-medium text-[#1d1d1f]">{order.customer_name}</p>
+                        <p className="text-xs text-[#6e6e73]">{order.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#6e6e73] text-xs">Total</p>
+                        <p className="font-bold text-[#1d1d1f]">${Number(order.total).toFixed(2)}</p>
+                        <p className="text-xs text-[#6e6e73]">{order.items.length} items</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-[#f5f5f7] flex flex-wrap gap-2">
+                      {order.status === 'pending' && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'processing')}
+                          className="px-3 py-1.5 bg-[#0071e3] text-white rounded-full text-xs font-semibold hover:bg-[#0064cc]"
+                        >
+                          Mark Processing
+                        </button>
+                      )}
+                      {order.status === 'processing' && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'shipped')}
+                          className="px-3 py-1.5 bg-[#0071e3] text-white rounded-full text-xs font-semibold hover:bg-[#0064cc]"
+                        >
+                          Mark Shipped
+                        </button>
+                      )}
+                      {order.status === 'shipped' && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'delivered')}
+                          className="px-3 py-1.5 bg-[#0071e3] text-white rounded-full text-xs font-semibold hover:bg-[#0064cc]"
+                        >
+                          Mark Delivered
+                        </button>
+                      )}
+                      {(order.status === 'pending' || order.status === 'processing') && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                          className="px-3 py-1.5 bg-[#ff3b30] text-white rounded-full text-xs font-semibold hover:bg-[#d32f2f]"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── ANALYTICS TAB ── */}
         {activeTab === "stats" && (

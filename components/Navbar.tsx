@@ -105,7 +105,7 @@ export default function Navbar() {
             className="flex items-center gap-2 font-bold text-[#1d1d1f] text-lg absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0"
           >
             <span className="text-2xl">⌘</span>
-            <span className="hidden sm:block tracking-tight text-[15px]">TechStore</span>
+            <span className="hidden sm:block tracking-tight text-[15px]">{process.env.NEXT_PUBLIC_STORE_NAME || 'TechStore'}</span>
           </Link>
 
           {/* ── Desktop nav links ── */}

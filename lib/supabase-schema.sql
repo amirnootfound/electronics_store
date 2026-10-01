@@ -76,7 +76,7 @@ create table if not exists products (
   id            uuid primary key default gen_random_uuid(),
   name          text not null,
   tagline       text not null default '',
-  price_usd     numeric(10,2) not null default 0, -- Changed to USD base
+  price_kgs     numeric(10,2) not null default 0, -- Renamed to match app types (stores USD)
   currency      text not null default 'USD',
   image         text not null default '',
   images        text[] not null default '{}',
@@ -96,6 +96,22 @@ create table if not exists products (
   updated_at    timestamptz default now()
 );
 
+-- Rename column if it exists as price_usd
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'price_usd') then
+    alter table products rename column price_usd to price_kgs;
+  end if;
+end $$;
+
+-- Add stock_quantity column if it doesn't exist
+do $$
+begin
+  if not exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'stock_quantity') then
+    alter table products add column stock_quantity integer;
+  end if;
+end $$;
+
 -- 7. Auto-update updated_at function
 create or replace function update_updated_at()
 returns trigger as $$
@@ -106,26 +122,32 @@ end;
 $$ language plpgsql;
 
 -- 8. Create updated_at triggers for all tables
+drop trigger if exists products_updated_at on products;
 create trigger products_updated_at
   before update on products
   for each row execute function update_updated_at();
 
+drop trigger if exists categories_updated_at on categories;
 create trigger categories_updated_at
   before update on categories
   for each row execute function update_updated_at();
 
+drop trigger if exists brands_updated_at on brands;
 create trigger brands_updated_at
   before update on brands
   for each row execute function update_updated_at();
 
+drop trigger if exists spec_templates_updated_at on spec_templates;
 create trigger spec_templates_updated_at
   before update on spec_templates
   for each row execute function update_updated_at();
 
+drop trigger if exists payment_methods_updated_at on payment_methods;
 create trigger payment_methods_updated_at
   before update on payment_methods
   for each row execute function update_updated_at();
 
+drop trigger if exists order_paths_updated_at on order_paths;
 create trigger order_paths_updated_at
   before update on order_paths
   for each row execute function update_updated_at();
@@ -139,74 +161,96 @@ alter table payment_methods enable row level security;
 alter table order_paths enable row level security;
 
 -- Products RLS
+drop policy if exists "Public can read products" on products;
 create policy "Public can read products"
   on products for select using (true);
 
+drop policy if exists "Authenticated can insert products" on products;
 create policy "Authenticated can insert products"
   on products for insert to authenticated with check (true);
 
+drop policy if exists "Authenticated can update products" on products;
 create policy "Authenticated can update products"
   on products for update to authenticated using (true);
 
+drop policy if exists "Authenticated can delete products" on products;
 create policy "Authenticated can delete products"
   on products for delete to authenticated using (true);
 
+drop policy if exists "Anon can insert products for demo" on products;
 create policy "Anon can insert products for demo"
   on products for insert to anon with check (true);
 
+drop policy if exists "Anon can update products for demo" on products;
 create policy "Anon can update products for demo"
   on products for update to anon using (true);
 
+drop policy if exists "Anon can delete products for demo" on products;
 create policy "Anon can delete products for demo"
   on products for delete to anon using (true);
 
 -- Categories RLS
+drop policy if exists "Public can read categories" on categories;
 create policy "Public can read categories"
   on categories for select using (true);
 
+drop policy if exists "Authenticated can manage categories" on categories;
 create policy "Authenticated can manage categories"
   on categories for all to authenticated using (true);
 
+drop policy if exists "Anon can manage categories for demo" on categories;
 create policy "Anon can manage categories for demo"
   on categories for all to anon using (true);
 
 -- Brands RLS
+drop policy if exists "Public can read brands" on brands;
 create policy "Public can read brands"
   on brands for select using (true);
 
+drop policy if exists "Authenticated can manage brands" on brands;
 create policy "Authenticated can manage brands"
   on brands for all to authenticated using (true);
 
+drop policy if exists "Anon can manage brands for demo" on brands;
 create policy "Anon can manage brands for demo"
   on brands for all to anon using (true);
 
 -- Spec Templates RLS
+drop policy if exists "Public can read spec_templates" on spec_templates;
 create policy "Public can read spec_templates"
   on spec_templates for select using (true);
 
+drop policy if exists "Authenticated can manage spec_templates" on spec_templates;
 create policy "Authenticated can manage spec_templates"
   on spec_templates for all to authenticated using (true);
 
+drop policy if exists "Anon can manage spec_templates for demo" on spec_templates;
 create policy "Anon can manage spec_templates for demo"
   on spec_templates for all to anon using (true);
 
 -- Payment Methods RLS
+drop policy if exists "Public can read payment_methods" on payment_methods;
 create policy "Public can read payment_methods"
   on payment_methods for select using (true);
 
+drop policy if exists "Authenticated can manage payment_methods" on payment_methods;
 create policy "Authenticated can manage payment_methods"
   on payment_methods for all to authenticated using (true);
 
+drop policy if exists "Anon can manage payment_methods for demo" on payment_methods;
 create policy "Anon can manage payment_methods for demo"
   on payment_methods for all to anon using (true);
 
 -- Order Paths RLS
+drop policy if exists "Public can read order_paths" on order_paths;
 create policy "Public can read order_paths"
   on order_paths for select using (true);
 
+drop policy if exists "Authenticated can manage order_paths" on order_paths;
 create policy "Authenticated can manage order_paths"
   on order_paths for all to authenticated using (true);
 
+drop policy if exists "Anon can manage order_paths for demo" on order_paths;
 create policy "Anon can manage order_paths for demo"
   on order_paths for all to anon using (true);
 
@@ -293,116 +337,133 @@ insert into order_paths (name, code, icon, description, is_active, display_order
 ('Delivery', 'delivery', '🚚', 'Have your order delivered to your door', true, 5)
 on conflict (code) do nothing;
 
--- 17. Seed Products — Mixed electronics catalog (USD prices)
-insert into products (name, tagline, price_usd, image, images, category_id, brand_id, description, specs, stock_status, featured, badge, rating, review_count) values
+-- 17. Add missing columns to products table if they don't exist
+do $$
+begin
+  -- Add category column if it doesn't exist
+  if not exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'category') then
+    alter table products add column category text;
+  end if;
+  
+  -- Add brand column if it doesn't exist
+  if not exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'brand') then
+    alter table products add column brand text;
+  end if;
+end $$;
+
+-- 18. Seed Products — Simple version without foreign keys (USD prices stored in price_kgs column)
+insert into products (name, tagline, price_kgs, image, images, category, brand, description, specs, stock_status, featured, badge, rating, review_count, stock_quantity) values
 (
   'iPhone 15 Pro Max', 'Titanium. So strong. So light. So Pro.', 1199.99,
   'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=800&hei=800&fmt=jpeg&qlt=90',
   ARRAY['https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=800&hei=800&fmt=jpeg&qlt=90'],
-  (select id from categories where slug = 'smartphones' limit 1),
-  (select id from brands where slug = 'apple' limit 1),
+  'Smartphones', 'Apple',
   'iPhone 15 Pro Max with A17 Pro chip. 6.7-inch Super Retina XDR display.',
   '{"Processor":"A17 Pro","Display":"6.7-inch Super Retina XDR","Camera":"48MP Main","Storage":"256GB","Battery":"Up to 29 hours"}',
-  true, true, 'New', 4.9, 1024
+  true, true, 'New', 4.9, 1024, 5
 ),
 (
   'Dell XPS 15', 'Performance. Creation. Entertainment.', 1499.99,
   'https://i.dell.com/is/image/DellMarketing/content/dam/ss2/product-images/dell-client-products/notebooks/xps-notebooks/xps-15-9530/media-gallery/x15-9530-cnb-00000ff090-gy-pk.psd',
   ARRAY['https://i.dell.com/is/image/DellMarketing/content/dam/ss2/product-images/dell-client-products/notebooks/xps-notebooks/xps-15-9530/media-gallery/x15-9530-cnb-00000ff090-gy-pk.psd'],
-  (select id from categories where slug = 'laptops' limit 1),
-  (select id from brands where slug = 'dell' limit 1),
+  'Laptops', 'Dell',
   'Dell XPS 15 with Intel Core i7, 32GB RAM, 1TB SSD. Perfect for creators.',
   '{"Processor":"Intel Core i7","RAM":"32GB DDR5","Storage":"1TB SSD","Display":"15.6-inch OLED 3.5K","Graphics":"NVIDIA RTX 4050","Battery":"Up to 12 hours"}',
-  true, true, 'Popular', 4.7, 876
+  true, true, 'Popular', 4.7, 876, 3
 ),
 (
   'Sony WH-1000XM5', 'Industry-leading noise cancellation.', 349.99,
   'https://m.media-amazon.com/images/I/61vJPLPsxxL._AC_SX679_.jpg',
   ARRAY['https://m.media-amazon.com/images/I/61vJPLPsxxL._AC_SX679_.jpg'],
-  (select id from categories where slug = 'audio' limit 1),
-  (select id from brands where slug = 'sony' limit 1),
+  'Audio', 'Sony',
   'Sony WH-1000XM5 with 8 microphones and 30-hour battery life.',
   '{"Driver Size":"30mm","Frequency Response":"4Hz-40000Hz","Battery Life":"30 hours","Noise Cancellation":"Active","Connectivity":"Bluetooth 5.2","Weight":"250g"}',
-  true, false, null, 4.8, 2341
+  true, false, null, 4.8, 2341, 15
 ),
 (
   'Samsung 65" QLED 4K TV', 'Quantum Dot technology for brilliant color.', 899.99,
   'https://images.samsung.com/is/image/samsung/p6pim/us/qa65qn90bafxza/gallery/01-us-qa65qn90bafxza-538573618?$PD_GALLERY_PNG$',
   ARRAY['https://images.samsung.com/is/image/samsung/p6pim/us/qa65qn90bafxza/gallery/01-us-qa65qn90bafxza-538573618?$PD_GALLERY_PNG$'],
-  (select id from categories where slug = 'tv-home-theater' limit 1),
-  (select id from brands where slug = 'samsung' limit 1),
+  'TV & Home Theater', 'Samsung',
   'Samsung 65-inch QLED 4K Smart TV with Quantum Dot technology.',
   '{"Display":"65-inch QLED 4K","Resolution":"3840x2160","Smart TV":"Tizen","HDR":"HDR10+","Refresh Rate":"120Hz"}',
-  true, false, null, 4.6, 654
+  true, false, null, 4.6, 654, 8
 ),
 (
   'Logitech MX Master 3S', 'Advanced wireless mouse for productivity.', 99.99,
   'https://m.media-amazon.com/images/I/61vJPLPsxxL._AC_SX679_.jpg',
   ARRAY['https://m.media-amazon.com/images/I/61vJPLPsxxL._AC_SX679_.jpg'],
-  (select id from categories where slug = 'accessories' limit 1),
-  (select id from brands where slug = 'logitech' limit 1),
+  'Accessories', 'Logitech',
   'Logitech MX Master 3S wireless mouse with ergonomic design and precision scrolling.',
   '{"Connectivity":"Bluetooth / USB-C","Sensor":"8000 DPI","Battery":"Up to 70 days","Buttons":"8 programmable","Compatibility":"Mac/Windows/Linux"}',
-  true, false, null, 4.7, 1543
+  true, false, null, 4.7, 1543, 25
 ),
 (
   'Anker PowerCore 26800', 'High-capacity portable charger.', 49.99,
   'https://m.media-amazon.com/images/I/61vJPLPsxxL._AC_SX679_.jpg',
   ARRAY['https://m.media-amazon.com/images/I/61vJPLPsxxL._AC_SX679_.jpg'],
-  (select id from categories where slug = 'accessories' limit 1),
-  (select id from brands where slug = 'anker' limit 1),
+  'Accessories', 'Anker',
   'Anker PowerCore 26800 portable battery with 26800mAh capacity for multiple device charges.',
   '{"Capacity":"26800mAh","Output":"USB-C / USB-A","Fast Charging":"PowerIQ 3.0","Ports":"3 ports","Weight":"454g"}',
-  true, false, null, 4.5, 3210
+  true, false, null, 4.5, 3210, 50
 );
 
--- 18. Leads table for tracking customer inquiries and sales (updated for USD)
-create table if not exists leads (
-  id            uuid primary key default gen_random_uuid(),
-  customer_name text not null,
-  phone         text not null, -- Changed from whatsapp to generic phone
-  address       text,
-  email         text,
-  product_id    uuid references products(id) on delete set null,
-  product_name  text not null,
-  category_id   uuid references categories(id) on delete set null, -- Changed to reference categories
-  message       text,
-  total_amount  numeric(10,2), -- Changed to decimal for USD
-  currency      text not null default 'USD',
-  payment_method_id uuid references payment_methods(id) on delete set null,
-  order_path_id uuid references order_paths(id) on delete set null,
-  source        text not null default 'checkout', -- checkout, product_page, homepage
-  status        text not null default 'new' check (status in ('new', 'contacted', 'qualified', 'closed', 'lost')),
-  priority      text not null default 'medium' check (priority in ('low', 'medium', 'high')),
-  notes         text,
-  created_at    timestamptz default now(),
-  updated_at    timestamptz default now(),
-  contacted_at  timestamptz
+-- 18. Orders table for checkout system
+create table if not exists orders (
+  id                    uuid primary key default gen_random_uuid(),
+  order_number          text not null unique,
+  customer_name         text not null,
+  email                 text not null,
+  phone                 text not null,
+  shipping_address      jsonb not null,
+  items                 jsonb not null,
+  subtotal              numeric(10,2) not null,
+  shipping_cost         numeric(10,2) not null default 0,
+  tax_amount            numeric(10,2) not null default 0,
+  total                 numeric(10,2) not null,
+  currency              text not null default 'USD',
+  shipping_method       text not null default 'standard',
+  payment_method        text not null,
+  payment_status        text not null default 'pending' check (payment_status in ('pending', 'paid', 'failed', 'refunded')),
+  stripe_payment_intent_id text,
+  status                text not null default 'pending' check (status in ('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded')),
+  tracking_number       text,
+  notes                 text,
+  created_at            timestamptz default now(),
+  updated_at            timestamptz default now()
 );
 
--- 19. Auto-update updated_at for leads
-create trigger leads_updated_at
-  before update on leads
+-- 19. Auto-update updated_at for orders
+drop trigger if exists orders_updated_at on orders;
+create trigger orders_updated_at
+  before update on orders
   for each row execute function update_updated_at();
 
--- 20. Row Level Security for leads
-alter table leads enable row level security;
+-- 20. Row Level Security for orders
+alter table orders enable row level security;
 
-create policy "Public can insert leads"
-  on leads for insert to anon with check (true);
+drop policy if exists "Public can insert orders" on orders;
+create policy "Public can insert orders"
+  on orders for insert to anon with check (true);
 
-create policy "Authenticated can read leads"
-  on leads for select to authenticated using (true);
+drop policy if exists "Public can insert orders for all" on orders;
+create policy "Public can insert orders for all"
+  on orders for insert to anon, authenticated with check (true);
 
-create policy "Authenticated can update leads"
-  on leads for update to authenticated using (true);
+drop policy if exists "Authenticated can read orders" on orders;
+create policy "Authenticated can read orders"
+  on orders for select to authenticated using (true);
 
-create policy "Authenticated can delete leads"
-  on leads for delete to authenticated using (true);
+drop policy if exists "Authenticated can update orders" on orders;
+create policy "Authenticated can update orders"
+  on orders for update to authenticated using (true);
+
+drop policy if exists "Public can read own orders by email" on orders;
+create policy "Public can read own orders by email"
+  on orders for select to anon using (email = auth.jwt() ->> 'email');
 
 -- 21. Indexes for better performance
-create index idx_leads_status on leads(status);
-create index idx_leads_created_at on leads(created_at desc);
-create index idx_leads_product_id on leads(product_id);
-create index idx_leads_source on leads(source);
-create index idx_leads_priority on leads(priority);
+create index idx_orders_status on orders(status);
+create index idx_orders_created_at on orders(created_at desc);
+create index idx_orders_customer_email on orders(email);
+create index idx_orders_order_number on orders(order_number);

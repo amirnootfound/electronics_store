@@ -3,7 +3,7 @@ import "../globals.css";
 import { StoreProvider } from "@/context/StoreContext";
 
 export const metadata: Metadata = {
-  title: "Admin — TechStore KG",
+  title: "Admin — " + (process.env.NEXT_PUBLIC_STORE_NAME),
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

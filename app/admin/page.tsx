@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">⌘</div>
-          <h1 className="text-2xl font-black text-[#1d1d1f]">TechStore KG</h1>
+          <h1 className="text-2xl font-black text-[#1d1d1f]">{process.env.NEXT_PUBLIC_STORE_NAME}</h1>
           <p className="text-[#6e6e73] text-sm mt-1">Admin Panel</p>
         </div>
 
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
               type="email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
-              placeholder="admin@techstore.kg" 
+              placeholder={process.env.NEXT_PUBLIC_STORE_EMAIL} 
               className="w-full px-4 py-3 bg-[#f5f5f7] rounded-xl border border-transparent focus:border-[#0071e3] focus:bg-white outline-none text-sm transition-all" 
             />
           </div>

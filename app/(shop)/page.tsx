@@ -5,9 +5,10 @@
 // 4. Trending Now  5. Visit Us (Maps)  6. Full Catalog
 // ============================================================
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import ProductCard from "@/components/ProductCard";
 import CategoryCarousel from "@/components/CategoryCarousel";
@@ -29,7 +30,26 @@ const CATEGORY_TABS: { label: string; value: Category | "all" }[] = [
 
 export default function HomePage() {
   const { products, loading, recentlyViewed, activeCategory, setActiveCategory } = useStore();
+  const searchParams = useSearchParams();
   const trendingRef = useRef<HTMLDivElement>(null);
+
+  // Set category from URL query parameter on mount
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    if (categoryParam) {
+      setActiveCategory(categoryParam as Category);
+    }
+  }, [searchParams, setActiveCategory]);
+
+  // Scroll to catalog section if hash is present
+  useEffect(() => {
+    if (window.location.hash === "#catalog-section") {
+      const element = document.getElementById("catalog-section");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, []);
 
   const featured = products.filter((p) => p.new_product || p.featured).slice(0, 4);
   const trending = products.filter((p) => p.stock_status || p.new_product).slice(0, 8);
@@ -168,22 +188,22 @@ export default function HomePage() {
         </section>
 
         {/* ══════════════════════════════════════════
-            5. VISIT US IN BISHKEK — Maps banner
+            5. Maps banner
         ══════════════════════════════════════════ */}
         <section className="py-10 sm:py-14 bg-[#f5f5f7]">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
             <div className="rounded-3xl overflow-hidden bg-white border border-[#e8e8ed] shadow-sm">
               <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[320px] sm:min-h-[380px]">
 
-                {/* Map embed */}
+               {/* Map embed */}
                 <div className="relative bg-[#e8e8ed] min-h-[220px]">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.9663095343008!2d-74.00669258459433!3d40.71277597933181!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a23e28c1191%3A0x49f75d3281df052a!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1700000000000"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(process.env.NEXT_PUBLIC_STORE_ADDRESS || '')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                     className="w-full h-full absolute inset-0 border-0 min-h-[220px]"
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="TechStore on map"
+                    title={`${process.env.NEXT_PUBLIC_STORE_NAME} on map`}
                   />
                 </div>
 
@@ -193,7 +213,7 @@ export default function HomePage() {
                     📍 Our Store
                   </p>
                   <h2 className="text-2xl sm:text-3xl font-black text-[#1d1d1f] mb-2 leading-tight">
-                    Visit Us<br className="hidden sm:block" /> in New York City
+                    Visit Us<br className="hidden sm:block" /> in {process.env.NEXT_PUBLIC_STORE_LOCATION}
                   </h2>
                   <p className="text-[#6e6e73] text-sm sm:text-base mb-6 leading-relaxed">
                     Official Apple dealer and Samsung partner in U.S. Live demonstration, service center and expert consultation.
@@ -201,10 +221,10 @@ export default function HomePage() {
 
                   <div className="space-y-3 mb-7">
                     {[
-                      { icon: "📍", label: "Address", value: "123 Main Street, New York, NY 10001" },
-                      { icon: "🕐", label: "Hours", value: "Mon–Sun: 9:00 – 21:00" },
-                      { icon: "📞", label: "Phone", value: "+1 (312) 399-7464" },
-                      { icon: "💬", label: "WhatsApp", value: "+1 (312) 399-7464" },
+                      { icon: "📍", label: "Address", value: process.env.NEXT_PUBLIC_STORE_ADDRESS || "" },
+                      { icon: "🕐", label: "Hours", value: process.env.NEXT_PUBLIC_STORE_HOURS || "" },
+                      { icon: "📞", label: "Phone", value: process.env.NEXT_PUBLIC_STORE_PHONE || "" },
+                      // { icon: "💬", label: "WhatsApp", value: process.env.NEXT_PUBLIC_STORE_WHATSAPP },
                     ].map((item) => (
                       <div key={item.label} className="flex items-start gap-3">
                         <span className="text-base mt-0.5">{item.icon}</span>
@@ -218,7 +238,7 @@ export default function HomePage() {
 
                   <div className="flex flex-wrap gap-3">
                     <a
-                      href="https://maps.google.com/?q=123+Main+Street+New+York+NY"
+                      href={"https://maps.google.com/?q=" + process.env.NEXT_PUBLIC_STORE_ADDRESS}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-[#0071e3] text-white rounded-full font-semibold text-sm hover:bg-[#0064cc] transition-colors flex items-center gap-2"
@@ -226,7 +246,7 @@ export default function HomePage() {
                       📍 Route in Google Maps
                     </a>
                     <a
-                      href="https://wa.me/15551234567"
+                      href={"https://wa.me/" + process.env.NEXT_PUBLIC_STORE_PHONE?.replace(/\D/g, '')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-[#25d366] text-white rounded-full font-semibold text-sm hover:bg-[#1da851] transition-colors flex items-center gap-2"
