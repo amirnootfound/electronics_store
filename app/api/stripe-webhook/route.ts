@@ -7,10 +7,6 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2026-08-26.dahlia',
-});
-
 export async function GET() {
   return NextResponse.json({ message: 'Webhook endpoint - POST only' });
 }
@@ -19,6 +15,11 @@ export async function POST(request: NextRequest) {
   const body = await request.text();
   const headersList = await headers();
   const signature = headersList.get('stripe-signature') || '';
+
+  // Initialize Stripe inside the handler to avoid build-time errors
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2026-08-26.dahlia',
+  });
 
   let event;
 
