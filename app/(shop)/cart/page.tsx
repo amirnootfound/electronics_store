@@ -6,6 +6,8 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { formatPrice } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 
+export const dynamic = 'force-dynamic';
+
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, clearCart, cartTotal, cartCount, products } = useStore();
   const { formatPrice: formatCurrencyPrice } = useCurrency();

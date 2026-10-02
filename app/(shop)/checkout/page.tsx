@@ -10,6 +10,8 @@ import { calculateShipping, getShippingRates } from "@/lib/shipping";
 import { loadStripe } from "@stripe/stripe-js";
 import { CardElement, useStripe, useElements, Elements } from "@stripe/react-stripe-js";
 
+export const dynamic = 'force-dynamic';
+
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
 const US_STATES = [

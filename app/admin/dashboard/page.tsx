@@ -8,6 +8,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
+
+export const dynamic = 'force-dynamic';
 import { useCurrency } from "@/context/CurrencyContext";
 import { Product, Category } from "@/types";
 import { formatPrice } from "@/data/products";

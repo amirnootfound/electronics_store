@@ -15,6 +15,8 @@ import CategoryCarousel from "@/components/CategoryCarousel";
 import { Category } from "@/types";
 import Navbar from "@/components/Navbar";
 
+export const dynamic = 'force-dynamic';
+
 // ── Category filter list ──────────────────────────────────
 const CATEGORY_TABS: { label: string; value: Category | "all" }[] = [
   { label: "All", value: "all" },

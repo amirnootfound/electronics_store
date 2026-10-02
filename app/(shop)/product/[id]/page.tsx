@@ -8,6 +8,8 @@ import ProductCard from "@/components/ProductCard";
 import ImageGallery from "@/components/ImageGallery";
 import { useRouter } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { products, addToCart, toggleWishlist, isWishlisted, addRecentlyViewed } = useStore();

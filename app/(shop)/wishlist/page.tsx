@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
 import ProductCard from "@/components/ProductCard";
 
+export const dynamic = 'force-dynamic';
+
 export default function WishlistPage() {
   const { products, wishlistIds } = useStore();
   const wishlisted = products.filter((p) => wishlistIds.includes(p.id));
