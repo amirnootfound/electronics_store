@@ -5,7 +5,7 @@
 // 4. Trending Now  5. Visit Us (Maps)  6. Full Catalog
 // ============================================================
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -30,7 +30,7 @@ const CATEGORY_TABS: { label: string; value: Category | "all" }[] = [
   { label: "Gaming", value: "Gaming" },
 ];
 
-export default function HomePage() {
+function HomePageContent() {
   const { products, loading, recentlyViewed, activeCategory, setActiveCategory } = useStore();
   const searchParams = useSearchParams();
   const trendingRef = useRef<HTMLDivElement>(null);
@@ -364,5 +364,13 @@ export default function HomePage() {
         </section>
       </div>
     </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <HomePageContent />
+    </Suspense>
   );
 }
