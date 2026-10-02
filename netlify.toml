@@ -3,5 +3,5 @@
   publish = ".next"
 
 [build.environment]
-  SECRETS_SCAN_ENABLED = false
+  SECRETS_SCAN_ENABLED = "false"
   NODE_OPTIONS = "--max-old-space-size=8192 --max-semi-space-size=1024"
